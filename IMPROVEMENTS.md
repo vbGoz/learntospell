@@ -33,6 +33,15 @@
 - Tracks progress just like other modes
 - Yellow/orange themed UI
 
+### ✅ **Multi-User Profile System**
+- Multiple profiles on one device
+- Each profile has custom name, avatar emoji, color theme
+- Separate progress tracking per profile
+- Profile selector screen
+- Create/switch/delete profiles
+- Auto-migration from single-user data
+- Perfect for families sharing a device
+
 ---
 
 ## Deep Analysis & Enhancement Roadmap
