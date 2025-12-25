@@ -2,7 +2,7 @@
 
 ## Test Suite
 
-This project includes a comprehensive test suite with 25 unit tests covering all core functionality.
+This project includes a comprehensive test suite with **50 unit tests** covering all core functionality, including localStorage persistence and learning analytics.
 
 ## Running Tests
 
@@ -47,11 +47,55 @@ npm test
 - ✓ No duplicate words across categories
 - ✓ Total words across categories equals 221
 
+### localStorage & Persistence Tests (25 tests)
+
+#### Core Data Structure Tests (4 tests)
+- ✓ getDefaultUserData returns valid structure
+- ✓ userData structure matches schema
+- ✓ All required fields present (settings, stats, wordHistory, achievements)
+- ✓ Correct default values initialized
+
+#### Word History Tracking Tests (4 tests)
+- ✓ Creates new word entry on first attempt
+- ✓ Increments attempts correctly
+- ✓ Tracks correct answers accurately
+- ✓ Updates lastAttempt timestamp
+
+#### Missed Words Detection Tests (8 tests)
+- ✓ Returns empty array for new user
+- ✓ Identifies word with 0% accuracy
+- ✓ Identifies word with <50% accuracy
+- ✓ Excludes word with 50% accuracy (boundary test)
+- ✓ Excludes word with 100% accuracy
+- ✓ Handles multiple words correctly
+- ✓ Single correct attempt = 100% accuracy
+- ✓ Single incorrect attempt = 0% accuracy
+
+#### Mastery Stats Calculation Tests (9 tests)
+- ✓ Returns zeros for new user
+- ✓ Identifies mastered word (80%+ accuracy, 3+ correct)
+- ✓ Requires 3+ correct answers for mastery
+- ✓ Requires 80%+ accuracy for mastery
+- ✓ Identifies words needing practice (<50% accuracy)
+- ✓ Handles mixed progress correctly
+- ✓ Exactly 80% with 3+ correct counts as mastered
+- ✓ Exactly 50% does NOT count as needing practice
+- ✓ Calculates notPracticed count correctly
+
+#### Integration & Performance Tests (3 tests)
+- ✓ Realistic practice session (10 words, 7 correct, 3 incorrect)
+- ✓ Path to mastery (repeat attempts until mastered)
+- ✓ Performance test (handles all 221 words in <100ms)
+
+#### Edge Cases Tests (2 tests)
+- ✓ Words with 0 attempts don't appear in missed words
+- ✓ Handles empty/null word history gracefully
+
 ## Test Results
 
 ```
-🧪 25 tests
-✅ 25 passed
+🧪 50 tests
+✅ 50 passed
 ❌ 0 failed
 ```
 
@@ -62,22 +106,46 @@ npm test
 3. **Spelling Logic**: Tests the core spelling check algorithm with various inputs
 4. **Unscramble Logic**: Validates the letter unscrambling game mechanics
 5. **Special Cases**: Tests handling of accented characters and multi-word phrases
+6. **localStorage Utilities**: Validates all persistence functions work correctly
+7. **Learning Analytics**: Tests word history tracking, missed words detection, and mastery calculations
+8. **Data Structure**: Ensures userData schema is valid and consistent
+9. **Edge Cases**: Tests boundary conditions and error scenarios
+10. **Performance**: Verifies functions handle full 221-word list efficiently
+
+## Test Philosophy
+
+- **Comprehensive Coverage**: 50 tests cover all critical code paths
+- **Boundary Testing**: Tests edge cases (0%, 50%, 80%, 100% accuracy)
+- **Integration Testing**: Tests realistic usage scenarios
+- **Performance Testing**: Ensures scalability with full word list
+- **Data Validation**: Validates structure and types
 
 ## What's NOT Tested
 
 These require browser/DOM testing (future work):
 - React component rendering
 - User interactions (button clicks, typing)
-- Audio/TTS functionality (Puter.js)
+- Audio playback (pre-recorded AIFF files)
 - State management (React hooks)
 - Navigation between modes
-- Score and streak calculations (requires simulating full game flow)
+- localStorage read/write operations (requires browser environment)
+- PWA service worker functionality
+
+## Running Tests Automatically
+
+The test suite should be run:
+- ✅ Before every commit
+- ✅ After adding new features
+- ✅ After bug fixes
+- ✅ Before deployment
 
 ## Future Improvements
 
 To add full integration tests:
 1. Set up Jest + React Testing Library
 2. Add DOM testing with jsdom
-3. Mock Puter.js for TTS testing
+3. Mock localStorage for browser simulation
 4. Test full user flows (complete game sessions)
 5. Add visual regression testing
+6. Test PWA offline capabilities
+7. Add audio playback testing
