@@ -3,11 +3,12 @@
 ## 🎉 Recently Implemented (December 2024)
 
 ### ✅ **Pre-Recorded High-Quality Audio**
-- 221 AIFF audio files with macOS Allison voice
+- 221 M4A audio files with macOS Allison voice
 - Crystal-clear pronunciation
 - No API dependencies or login requirements
 - Works offline after first load
-- Total size: 8.0 MB
+- Mobile-optimized format (80% smaller than AIFF)
+- Total size: 2.0 MB
 
 ### ✅ **Static Definitions Library**
 - 221 kid-friendly, one-sentence definitions
@@ -24,29 +25,37 @@
 - App-like experience with no browser UI
 - Fast loading with smart caching
 
+### ✅ **Multiple Choice Mode**
+- New game mode for easier practice
+- 4 spelling options (1 correct, 3 plausible wrong answers)
+- Sophisticated distractor generation algorithm
+- Perfect for beginners and visual learners
+- Tracks progress just like other modes
+- Yellow/orange themed UI
+
 ---
 
 ## Deep Analysis & Enhancement Roadmap
 
 ### Current Strengths
 ✅ Simple, focused design
-✅ Multiple game modes (Listen & Spell, Unscramble, Study Mode)
+✅ Multiple game modes (Listen & Spell, Unscramble, Multiple Choice, Study Mode)
 ✅ **High-quality pre-recorded audio** (no API required)
 ✅ Good difficulty progression (6 levels)
 ✅ Kid-friendly UI
 ✅ **Static definitions for all 221 words**
 ✅ **PWA - Works offline and installable**
-✅ **Comprehensive unit tests** (25 tests, all passing)
+✅ **localStorage persistence - Never lose progress**
+✅ **Missed words tracking & review**
+✅ **Comprehensive unit tests** (80 tests, all passing)
 
 ### Current Limitations (Opportunities for Future Enhancement)
-❌ No progress persistence (resets on refresh)
-❌ No way to review missed words
-❌ Can't track learning over time
-❌ No focus on problem words (spaced repetition)
 ❌ Missing motivational elements (badges, achievements)
 ❌ No accessibility features (keyboard shortcuts, screen reader support)
 ❌ No custom word lists
 ❌ No multiplayer or social features
+❌ No dark mode
+❌ No progress dashboard with charts
 
 ---
 
@@ -128,25 +137,32 @@ const DEFINITIONS = {
 
 ---
 
-### 5. **New Game Mode: Multiple Choice** ⭐⭐⭐⭐
-**Problem**: Only 3 game modes, all require typing/clicking
-**Solution**: Add visual recognition mode
+### 5. **New Game Mode: Multiple Choice** ✅ IMPLEMENTED
+**Status**: Completed December 2024
 
-**How it Works**:
-- Show the word
-- Play audio
-- Show 4 spelling options (1 correct, 3 similar but wrong)
-- Good for younger kids or struggling spellers
+All 221 words now have a Multiple Choice mode for easier practice!
 
-**Example**:
-```
-🔊 [Play audio: "chair"]
+**What Was Implemented**:
+- Play audio for the word
+- Show 4 spelling options (1 correct, 3 plausible wrong answers)
+- Sophisticated distractor generation algorithm:
+  - Vowel swaps (e.g., chair → chear, cheir)
+  - Double/undouble consonants (e.g., sitting → siting, siting → sitting)
+  - Letter transposition (e.g., friend → freind)
+  - Common confusions (ie/ei, ph/f, c/k, tion/sion)
+  - Silent letter patterns (e.g., knight → night)
+- Yellow/orange themed UI
+- Tracks progress and statistics just like other modes
+- Shows definitions after each answer
+- Perfect for beginners and visual learners
 
-A) chare
-B) chair  ✓
-C) chiar
-D) shair
-```
+**Features**:
+- ✅ Audio playback for each word
+- ✅ 4 plausible options per question
+- ✅ Smart distractor generation
+- ✅ Progress tracking and statistics
+- ✅ Educational definitions
+- ✅ Mobile-friendly interface
 
 ---
 

@@ -374,6 +374,7 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
             const [shuffledWords, setShuffledWords] = useState([]);
             const [scrambledLetters, setScrambledLetters] = useState([]);
             const [selectedLetters, setSelectedLetters] = useState([]);
+            const [multipleChoiceOptions, setMultipleChoiceOptions] = useState([]);
             const [difficultyFilter, setDifficultyFilter] = useState('all');
             const [userData, setUserData] = useState(loadUserData());
             const inputRef = useRef(null);
@@ -402,6 +403,12 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                     const word = shuffledWords[currentWordIndex];
                     const letters = word.split('').sort(() => Math.random() - 0.5);
                     setScrambledLetters(letters.map((l, i) => ({ letter: l, id: i })));
+                    timer = setTimeout(() => speakWord(word), 500);
+                } else if (mode === 'multiple-choice') {
+                    const word = shuffledWords[currentWordIndex];
+                    const distractors = generateDistractors(word);
+                    const allOptions = [word, ...distractors].sort(() => Math.random() - 0.5);
+                    setMultipleChoiceOptions(allOptions);
                     timer = setTimeout(() => speakWord(word), 500);
                 } else if (mode === 'listen' || mode === 'practice') {
                     timer = setTimeout(() => speakWord(shuffledWords[currentWordIndex]), 500);
@@ -439,6 +446,79 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                     'very-hard': ['covey', 'apartheid', 'kibbutz', 'putti', 'beignet', 'fricassee', 'abecedarius', 'collunarium', 'scamillus', 'buccinator', 'Tijuana', 'silenus', 'marcottage', 'schuss', 'bodegon', 'cri de coeur', 'chaise longue', 'tathagata', 'phalanstery', 'diapir', 'harmattan', 'farinha', 'shamiana', 'chautauqua', 'heishi', 'mostaccioli', 'baetyl', 'gardai', 'gelinotte', 'zamacueca', 'geländesprung', 'sittringee']
                 };
                 return words.filter(w => (categories[difficulty] || []).includes(w));
+            };
+
+            // Generate plausible wrong answers (distractors) for multiple choice
+            const generateDistractors = (correctWord) => {
+                const distractors = new Set();
+                const word = correctWord.toLowerCase();
+
+                // Strategy 1: Swap common vowels
+                const vowelSwaps = { 'a': ['e', 'o'], 'e': ['a', 'i'], 'i': ['e', 'y'], 'o': ['a', 'u'], 'u': ['o', 'oo'] };
+                for (let i = 0; i < word.length; i++) {
+                    if (vowelSwaps[word[i]]) {
+                        vowelSwaps[word[i]].forEach(swap => {
+                            const distractor = word.slice(0, i) + swap + word.slice(i + 1);
+                            if (distractor !== word) distractors.add(distractor);
+                        });
+                    }
+                }
+
+                // Strategy 2: Double or undouble consonants
+                for (let i = 0; i < word.length - 1; i++) {
+                    const char = word[i];
+                    if (!/[aeiou]/.test(char)) {
+                        // Double a consonant
+                        if (word[i] !== word[i + 1]) {
+                            const distractor = word.slice(0, i + 1) + char + word.slice(i + 1);
+                            distractors.add(distractor);
+                        }
+                        // Undouble a consonant
+                        if (word[i] === word[i + 1]) {
+                            const distractor = word.slice(0, i) + word.slice(i + 1);
+                            distractors.add(distractor);
+                        }
+                    }
+                }
+
+                // Strategy 3: Transpose adjacent letters
+                for (let i = 0; i < word.length - 1; i++) {
+                    const distractor = word.slice(0, i) + word[i + 1] + word[i] + word.slice(i + 2);
+                    if (distractor !== word) distractors.add(distractor);
+                }
+
+                // Strategy 4: Common spelling confusions
+                const confusions = [
+                    ['ie', 'ei'], ['ei', 'ie'], ['ph', 'f'], ['f', 'ph'],
+                    ['c', 'k'], ['k', 'c'], ['s', 'c'], ['c', 's'],
+                    ['tion', 'sion'], ['sion', 'tion'], ['ence', 'ance'], ['ance', 'ence']
+                ];
+                confusions.forEach(([from, to]) => {
+                    if (word.includes(from)) {
+                        const distractor = word.replace(from, to);
+                        if (distractor !== word) distractors.add(distractor);
+                    }
+                });
+
+                // Strategy 5: Remove or add silent letters
+                const silentPatterns = ['e$', 'ue$', 'gh', 'kn', 'wr'];
+                silentPatterns.forEach(pattern => {
+                    if (word.match(new RegExp(pattern))) {
+                        const distractor = word.replace(new RegExp(pattern), '');
+                        if (distractor !== word && distractor.length > 2) distractors.add(distractor);
+                    }
+                });
+
+                // Convert back to original case
+                const cased = Array.from(distractors).map(d => {
+                    if (correctWord[0] === correctWord[0].toUpperCase()) {
+                        return d.charAt(0).toUpperCase() + d.slice(1);
+                    }
+                    return d;
+                });
+
+                // Return 3 unique distractors
+                return cased.slice(0, 3);
             };
 
             // Convert word to filename
@@ -520,6 +600,31 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
             const checkUnscramble = () => {
                 const userWord = selectedLetters.map(l => l.letter).join('');
                 const correct = userWord.toLowerCase() === shuffledWords[currentWordIndex].toLowerCase();
+                setFeedback(correct ? 'correct' : 'incorrect');
+                setWordsAttempted(wordsAttempted + 1);
+
+                // Update userData
+                const newUserData = { ...userData };
+                newUserData.stats.totalWordsAttempted += 1;
+                if (correct) {
+                    newUserData.stats.totalCorrect += 1;
+                    setScore(score + 1);
+                    const newStreak = streak + 1;
+                    setStreak(newStreak);
+                    if (newStreak > newUserData.stats.bestStreak) {
+                        newUserData.stats.bestStreak = newStreak;
+                    }
+                } else {
+                    setStreak(0);
+                }
+                newUserData.wordHistory = updateWordHistory(newUserData, shuffledWords[currentWordIndex], correct);
+                newUserData.stats.lastPlayed = new Date().toISOString();
+                setUserData(newUserData);
+                saveUserData(newUserData);
+            };
+
+            const checkMultipleChoice = (selectedOption) => {
+                const correct = selectedOption.toLowerCase() === shuffledWords[currentWordIndex].toLowerCase();
                 setFeedback(correct ? 'correct' : 'incorrect');
                 setWordsAttempted(wordsAttempted + 1);
 
@@ -648,6 +753,7 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                         React.createElement('div', { className: 'space-y-4' },
                             React.createElement('button', { onClick: () => setMode('listen'), className: 'w-full bg-blue-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Listen & Spell'),
                             React.createElement('button', { onClick: () => setMode('unscramble'), className: 'w-full bg-green-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Unscramble'),
+                            React.createElement('button', { onClick: () => setMode('multiple-choice'), className: 'w-full bg-yellow-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Multiple Choice'),
                             React.createElement('button', { onClick: () => setMode('practice'), className: 'w-full bg-purple-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Study Mode'),
                             missedWords.length > 0 && React.createElement('button', {
                                 onClick: startPracticeMistakes,
@@ -832,6 +938,76 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                                     onClick: continueToNext,
                                     className: 'w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg hover:scale-105 transition'
                                 }, 'Continue')
+                        )
+                    )
+                );
+            }
+
+            // MULTIPLE CHOICE MODE
+            if (mode === 'multiple-choice') {
+                const currentWord = shuffledWords[currentWordIndex];
+                return React.createElement('div', { className: 'min-h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 p-4' },
+                    React.createElement('div', { className: 'max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl p-8' },
+                        React.createElement('div', { className: 'flex justify-between items-center mb-6' },
+                            React.createElement('button', { onClick: () => { resetGame(); setMode('home'); } }, React.createElement(Home, { size: 24 })),
+                            React.createElement('div', { className: 'flex gap-4 text-sm' },
+                                React.createElement('div', { className: 'bg-yellow-100 px-4 py-2 rounded-full font-bold' }, `Score: ${score}`),
+                                React.createElement('div', { className: 'bg-orange-100 px-4 py-2 rounded-full font-bold' }, `Streak: ${streak} 🔥`)
+                            )
+                        ),
+                        React.createElement('div', { className: 'text-center' },
+                            React.createElement('div', { className: 'text-gray-500 mb-2' }, `Word ${currentWordIndex + 1} of ${shuffledWords.length}`),
+                            React.createElement('div', { className: 'w-full bg-gray-200 rounded-full h-3 mb-6' },
+                                React.createElement('div', { className: 'bg-gradient-to-r from-yellow-500 to-orange-500 h-3 rounded-full transition-all', style: { width: `${((currentWordIndex + 1) / shuffledWords.length) * 100}%` } })
+                            ),
+                            React.createElement('div', { className: 'mb-6' },
+                                React.createElement('button', { onClick: () => speakWord(currentWord), className: 'bg-blue-500 text-white px-8 py-4 rounded-full hover:scale-105 transition shadow-lg inline-flex items-center gap-3' },
+                                    React.createElement(Volume2, { size: 24 }), React.createElement('span', { className: 'text-xl font-bold' }, 'Play Word')
+                                )
+                            ),
+                            React.createElement('div', { className: 'text-lg text-gray-600 mb-6' }, 'Choose the correct spelling:'),
+                            React.createElement('div', { className: 'grid grid-cols-1 gap-3 mb-6' },
+                                multipleChoiceOptions.map((option, index) =>
+                                    React.createElement('button', {
+                                        key: index,
+                                        onClick: () => !feedback && checkMultipleChoice(option),
+                                        disabled: feedback !== null,
+                                        className: `p-4 rounded-xl font-bold text-lg transition ${
+                                            feedback && option.toLowerCase() === currentWord.toLowerCase()
+                                                ? 'bg-green-500 text-white border-4 border-green-600'
+                                                : feedback
+                                                    ? 'bg-gray-200 text-gray-400'
+                                                    : 'bg-gradient-to-r from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 border-2 border-yellow-300 hover:scale-105'
+                                        }`
+                                    }, option)
+                                )
+                            ),
+                            feedback && React.createElement('div', { className: `mb-4 p-4 rounded-xl ${feedback === 'correct' ? 'bg-green-100 border-2 border-green-300' : 'bg-red-100 border-2 border-red-300'}` },
+                                feedback === 'correct' ?
+                                    React.createElement('div', null,
+                                        React.createElement('div', { className: 'font-bold text-lg text-green-700 flex items-center gap-2 mb-2' },
+                                            React.createElement(Check, { size: 24 }), 'Correct!'
+                                        ),
+                                        DEFINITIONS[currentWord] && React.createElement('div', { className: 'text-sm text-gray-700 mt-2 p-3 bg-white rounded-lg' },
+                                            React.createElement('span', { className: 'font-semibold' }, 'Definition: '), DEFINITIONS[currentWord]
+                                        )
+                                    ) :
+                                    React.createElement('div', null,
+                                        React.createElement('div', { className: 'font-bold text-lg text-red-700 flex items-center gap-2 mb-2' },
+                                            React.createElement(X, { size: 24 }), 'Incorrect'
+                                        ),
+                                        React.createElement('div', { className: 'text-sm text-red-800 mb-2' },
+                                            React.createElement('span', { className: 'font-semibold' }, 'Correct answer: '), currentWord
+                                        ),
+                                        DEFINITIONS[currentWord] && React.createElement('div', { className: 'text-sm text-gray-700 mt-3 p-3 bg-white rounded-lg' },
+                                            React.createElement('span', { className: 'font-semibold' }, 'Definition: '), DEFINITIONS[currentWord]
+                                        )
+                                    )
+                            ),
+                            feedback && React.createElement('button', {
+                                onClick: continueToNext,
+                                className: 'w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg hover:scale-105 transition'
+                            }, 'Continue')
                         )
                     )
                 );
