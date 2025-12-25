@@ -269,7 +269,6 @@ sittringee`.split('\\n').map(w => w.trim()).filter(w => w);
             const [scrambledLetters, setScrambledLetters] = useState([]);
             const [selectedLetters, setSelectedLetters] = useState([]);
             const [difficultyFilter, setDifficultyFilter] = useState('all');
-            const [currentDefinition, setCurrentDefinition] = useState('');
             const [puterLoaded, setPuterLoaded] = useState(false);
             const [puterVoice, setPuterVoice] = useState('Joanna');
             const inputRef = useRef(null);
@@ -298,17 +297,15 @@ sittringee`.split('\\n').map(w => w.trim()).filter(w => w);
                     const word = shuffledWords[currentWordIndex];
                     const letters = word.split('').sort(() => Math.random() - 0.5);
                     setScrambledLetters(letters.map((l, i) => ({ letter: l, id: i })));
-                    fetchDefinition(word);
                     const timer = setTimeout(() => speakWord(word), 500);
                     return () => clearTimeout(timer);
                 }
-                
+
                 if ((mode === 'listen' || mode === 'practice') && shuffledWords.length > 0 && feedback === null) {
-                    fetchDefinition(shuffledWords[currentWordIndex]);
                     const timer = setTimeout(() => speakWord(shuffledWords[currentWordIndex]), 500);
                     return () => clearTimeout(timer);
                 }
-                
+
                 if ((mode === 'listen' || mode === 'practice') && inputRef.current) {
                     inputRef.current.focus();
                 }
@@ -336,24 +333,6 @@ sittringee`.split('\\n').map(w => w.trim()).filter(w => w);
                     'very-hard': ['covey', 'apartheid', 'kibbutz', 'putti', 'beignet', 'fricassee', 'abecedarius', 'collunarium', 'scamillus', 'buccinator', 'Tijuana', 'silenus', 'marcottage', 'schuss', 'bodegon', 'cri de coeur', 'chaise longue', 'tathagata', 'phalanstery', 'diapir', 'harmattan', 'farinha', 'shamiana', 'chautauqua', 'heishi', 'mostaccioli', 'baetyl', 'gardai', 'gelinotte', 'zamacueca', 'geländesprung', 'sittringee']
                 };
                 return words.filter(w => (categories[difficulty] || []).includes(w));
-            };
-
-            const fetchDefinition = async (word) => {
-                try {
-                    const response = await fetch("https://api.anthropic.com/v1/messages", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            model: "claude-sonnet-4-20250514",
-                            max_tokens: 150,
-                            messages: [{ role: "user", content: `Provide a concise, kid-friendly definition of the word "${word}" in one sentence. Just give the definition, nothing else.` }]
-                        })
-                    });
-                    const data = await response.json();
-                    setCurrentDefinition(data.content[0].text.trim());
-                } catch (error) {
-                    setCurrentDefinition('Definition not available');
-                }
             };
 
             const speakWord = async (word) => {
@@ -527,13 +506,8 @@ sittringee`.split('\\n').map(w => w.trim()).filter(w => w);
                             }),
                             feedback && React.createElement('div', { className: `mb-4 p-4 rounded-xl ${feedback === 'correct' ? 'bg-green-100 border-2 border-green-300' : 'bg-red-100 border-2 border-red-300'}` },
                                 feedback === 'correct' ?
-                                    React.createElement('div', null,
-                                        React.createElement('div', { className: 'font-bold text-lg text-green-700 flex items-center gap-2 mb-2' },
-                                            React.createElement(Check, { size: 24 }), 'Correct! Great job!'
-                                        ),
-                                        currentDefinition && React.createElement('div', { className: 'text-sm text-gray-700 mt-2 p-3 bg-white rounded-lg' },
-                                            React.createElement('span', { className: 'font-semibold' }, 'Definition: '), currentDefinition
-                                        )
+                                    React.createElement('div', { className: 'font-bold text-lg text-green-700 flex items-center gap-2' },
+                                        React.createElement(Check, { size: 24 }), 'Correct! Great job!'
                                     ) :
                                     React.createElement('div', null,
                                         React.createElement('div', { className: 'font-bold text-lg text-red-700 flex items-center gap-2 mb-2' },
@@ -542,9 +516,6 @@ sittringee`.split('\\n').map(w => w.trim()).filter(w => w);
                                         React.createElement('div', { className: 'text-sm text-red-800 space-y-1' },
                                             React.createElement('div', null, React.createElement('span', { className: 'font-semibold' }, 'You wrote: '), userInput || '(nothing)'),
                                             React.createElement('div', null, React.createElement('span', { className: 'font-semibold' }, 'Correct: '), currentWord)
-                                        ),
-                                        currentDefinition && React.createElement('div', { className: 'text-sm text-gray-700 mt-3 p-3 bg-white rounded-lg' },
-                                            React.createElement('span', { className: 'font-semibold' }, 'Definition: '), currentDefinition
                                         )
                                     )
                             ),
@@ -607,24 +578,16 @@ sittringee`.split('\\n').map(w => w.trim()).filter(w => w);
                             ),
                             feedback && React.createElement('div', { className: `mb-4 p-4 rounded-xl ${feedback === 'correct' ? 'bg-green-100 border-2 border-green-300' : 'bg-red-100 border-2 border-red-300'}` },
                                 feedback === 'correct' ?
-                                    React.createElement('div', null,
-                                        React.createElement('div', { className: 'font-bold text-lg text-green-700 flex items-center gap-2 mb-2' },
-                                            React.createElement(Check, { size: 24 }), 'Correct!'
-                                        ),
-                                        currentDefinition && React.createElement('div', { className: 'text-sm text-gray-700 mt-2 p-3 bg-white rounded-lg' },
-                                            React.createElement('span', { className: 'font-semibold' }, 'Definition: '), currentDefinition
-                                        )
+                                    React.createElement('div', { className: 'font-bold text-lg text-green-700 flex items-center gap-2' },
+                                        React.createElement(Check, { size: 24 }), 'Correct!'
                                     ) :
                                     React.createElement('div', null,
                                         React.createElement('div', { className: 'font-bold text-lg text-red-700 flex items-center gap-2 mb-2' },
                                             React.createElement(X, { size: 24 }), 'Incorrect'
                                         ),
-                                        React.createElement('div', { className: 'text-sm text-red-800 space-y-1 mb-2' },
+                                        React.createElement('div', { className: 'text-sm text-red-800 space-y-1' },
                                             React.createElement('div', null, React.createElement('span', { className: 'font-semibold' }, 'You spelled: '), selectedLetters.map(l => l.letter).join('') || '(nothing)'),
                                             React.createElement('div', null, React.createElement('span', { className: 'font-semibold' }, 'Correct: '), currentWord)
-                                        ),
-                                        currentDefinition && React.createElement('div', { className: 'text-sm text-gray-700 mt-3 p-3 bg-white rounded-lg' },
-                                            React.createElement('span', { className: 'font-semibold' }, 'Definition: '), currentDefinition
                                         )
                                     )
                             ),
