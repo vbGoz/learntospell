@@ -40,6 +40,4 @@ afterAll(() => {
 // Clear mocks after each test
 afterEach(() => {
   jest.clearAllMocks();
-  localStorage.getItem.mockClear();
-  localStorage.setItem.mockClear();
 });

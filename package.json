@@ -13,8 +13,26 @@
     "test:all": "npm run test:unit && npm run test:integration && npm run test:react-lint && npm run test:jest",
     "coverage": "node tests/coverage-analysis.js"
   },
-  "keywords": ["spelling", "education", "pwa", "react", "testing"],
+  "keywords": [
+    "spelling",
+    "education",
+    "pwa",
+    "react",
+    "testing"
+  ],
   "author": "",
   "license": "MIT",
-  "devDependencies": {}
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^14.3.1",
+    "@testing-library/user-event": "^14.6.1",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
 }
