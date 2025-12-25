@@ -320,57 +320,44 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                 return words.filter(w => (categories[difficulty] || []).includes(w));
             };
 
+            // Convert word to filename
+            const getAudioFilename = (word) => {
+                return word.toLowerCase()
+                    .replace(/[àáâãäå]/g, 'a')
+                    .replace(/[èéêë]/g, 'e')
+                    .replace(/[ìíîï]/g, 'i')
+                    .replace(/[òóôõö]/g, 'o')
+                    .replace(/[ùúûü]/g, 'u')
+                    .replace(/[ñ]/g, 'n')
+                    .replace(/[ç]/g, 'c')
+                    .replace(/[ä]/g, 'a')
+                    .replace(/[ö]/g, 'o')
+                    .replace(/[ü]/g, 'u')
+                    .replace(/[ß]/g, 'ss')
+                    .replace(/\s+/g, '_')
+                    .replace(/[^a-z0-9_]/g, '');
+            };
+
             const speakWord = async (word) => {
-                if (!('speechSynthesis' in window)) {
-                    console.log('Speech synthesis not supported');
-                    return;
-                }
-
                 try {
-                    // Wait for voices to load
-                    const voices = await new Promise(resolve => {
-                        let voiceList = window.speechSynthesis.getVoices();
-                        if (voiceList.length) {
-                            resolve(voiceList);
-                        } else {
-                            window.speechSynthesis.onvoiceschanged = () => {
-                                resolve(window.speechSynthesis.getVoices());
-                            };
-                            // Fallback timeout
-                            setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1000);
-                        }
-                    });
+                    const filename = getAudioFilename(word);
+                    const audioPath = `audio/${filename}.aiff`;
 
-                    // Select the best US English voice
-                    // Priority: Google US English > any US English > first available
-                    let selectedVoice = voices.find(v =>
-                        v.lang.startsWith('en-US') && (v.name.includes('Google') || v.name.includes('Microsoft'))
-                    ) || voices.find(v => v.lang.startsWith('en-US')) || voices[0];
+                    const audio = new Audio(audioPath);
 
-                    const utterance = new SpeechSynthesisUtterance(word);
-                    utterance.voice = selectedVoice;
-                    utterance.rate = 0.7;
-                    utterance.pitch = 1.0;
-                    utterance.volume = 1.0;
-                    utterance.lang = 'en-US';
-
-                    // Clear any pending speech
-                    window.speechSynthesis.cancel();
-
-                    // Speak and wait for completion
                     return new Promise((resolve, reject) => {
-                        utterance.onend = () => {
+                        audio.onended = () => {
                             inputRef.current?.focus();
                             resolve();
                         };
-                        utterance.onerror = (error) => {
-                            console.error('Speech synthesis error:', error);
+                        audio.onerror = (error) => {
+                            console.error(`Failed to load audio: ${audioPath}`, error);
                             reject(error);
                         };
-                        window.speechSynthesis.speak(utterance);
+                        audio.play().catch(reject);
                     });
                 } catch (error) {
-                    console.error('Failed to speak word:', error);
+                    console.error('Failed to play word:', error);
                 }
             };
 
@@ -448,7 +435,7 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                             )
                         ),
                         React.createElement('div', { className: 'mb-6' },
-                            React.createElement('div', { className: 'bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700' }, '🔊 High-Quality Browser Audio')
+                            React.createElement('div', { className: 'bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700' }, '🎙️ High-Quality Pre-Recorded Audio (Allison Voice)')
                         ),
                         React.createElement('div', { className: 'space-y-4' },
                             React.createElement('button', { onClick: () => setMode('listen'), className: 'w-full bg-blue-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Listen & Spell'),

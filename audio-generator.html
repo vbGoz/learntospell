@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Club Audio Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-purple-600 mb-4">Word Club Audio Generator</h1>
+        <p class="text-gray-600 mb-6">Generate audio files for all 221 spelling words using your browser's text-to-speech.</p>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h3 class="font-bold text-blue-900 mb-2">Instructions:</h3>
+            <ol class="list-decimal list-inside space-y-1 text-blue-800 text-sm">
+                <li>Select your preferred voice (Google US English recommended)</li>
+                <li>Adjust speech rate if needed (0.7 is good for spelling)</li>
+                <li>Click "Generate All Audio Files"</li>
+                <li>Wait for all files to generate (takes 2-3 minutes)</li>
+                <li>Click "Download All as ZIP"</li>
+                <li>Extract the ZIP to your project's /audio folder</li>
+            </ol>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block text-sm font-semibold mb-2">Voice:</label>
+                <select id="voiceSelect" class="w-full p-3 border-2 rounded-lg">
+                    <option>Loading voices...</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">Speech Rate:</label>
+                <input type="range" id="rateSlider" min="0.5" max="1.0" step="0.1" value="0.7" class="w-full">
+                <span id="rateValue" class="text-sm text-gray-600">0.7</span>
+            </div>
+        </div>
+
+        <div class="flex gap-4 mb-6">
+            <button id="generateBtn" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-purple-700">
+                Generate All Audio Files
+            </button>
+            <button id="downloadBtn" disabled class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                Download All as ZIP
+            </button>
+        </div>
+
+        <div id="progress" class="hidden mb-4">
+            <div class="w-full bg-gray-200 rounded-full h-4">
+                <div id="progressBar" class="bg-purple-600 h-4 rounded-full transition-all" style="width: 0%"></div>
+            </div>
+            <p id="progressText" class="text-sm text-gray-600 mt-2">Generating...</p>
+        </div>
+
+        <div id="log" class="bg-gray-50 rounded-lg p-4 h-96 overflow-y-auto font-mono text-sm"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        const WORDS = `substantially
+formidable
+marquee
+compunction
+hyperventilated
+onslaught
+misanthrope
+cravenly
+hypocritical
+traumatic
+solemnly
+contentious
+ensemble
+lye
+lacrosse
+cajolery
+residuals
+peroxide
+apocalypse
+barricade
+anonymously
+barrette
+junket
+Erie
+silhouette
+thesaurus
+chandelier
+concierge
+hibiscus
+maracas
+burpees
+piccolo
+tulle
+camphor
+paparazzi
+pogrom
+pâtisserie
+sarsaparilla
+cannelloni
+bronchitis
+diphtheria
+corbels
+Kilimanjaro
+protégé
+maquisards
+Charolais
+chair
+brass
+ready
+hangdog
+padlock
+scatter
+gobble
+eel
+sizzle
+Spanish
+hornet
+oval
+plastic
+mason
+slander
+evergreen
+decompose
+reasons
+dismantle
+glance
+oath
+sneakers
+duets
+cursive
+pastel
+hype
+nestled
+mustiness
+shrouded
+moderate
+mouthpiece
+lantern
+author
+wily
+veil
+redress
+cruiser
+vitally
+burrowed
+pentagon
+diagram
+scrimmage
+vulgar
+resign
+corrupt
+potency
+quartz
+tournament
+agribusiness
+clementine
+signature
+influence
+snorkeling
+citadel
+achievements
+appliances
+invective
+badminton
+gardenia
+emphatically
+absorption
+prognosticate
+Pacific
+affiliation
+synopsis
+coriander
+purgatory
+torpor
+covetous
+oppression
+abysmal
+precipice
+purview
+suburbia
+construe
+fettle
+curriculum
+deuce
+berth
+cyst
+knavery
+synonym
+purloined
+delectation
+austerity
+nascent
+extremophile
+monolithic
+coven
+satisfice
+nuptials
+aquacade
+assuage
+ballistics
+efficacy
+dreidel
+alacrity
+elision
+sanctimonious
+heptathlon
+tempera
+mitosis
+apologia
+mesomorph
+claustrophobia
+glissade
+antebellum
+weir
+sortie
+compañero
+pelota
+eloge
+mansard
+ramate
+paranephric
+tontine
+asyllabia
+velodrome
+dysplasia
+Columbiad
+terricolous
+soporiferous
+cyclopean
+messianic
+Austronesia
+maxillary
+Euclidean
+archizoic
+aphagia
+persillade
+capriccio
+chitin
+maisonette
+maunaloa
+hexastich
+bathypelagic
+syzygy
+pharisaical
+vicegerent
+pince-nez
+carotid
+salaam
+forzato
+covey
+apartheid
+kibbutz
+putti
+beignet
+fricassee
+abecedarius
+collunarium
+scamillus
+buccinator
+Tijuana
+silenus
+marcottage
+schuss
+bodegon
+cri de coeur
+chaise longue
+tathagata
+phalanstery
+diapir
+harmattan
+farinha
+shamiana
+chautauqua
+heishi
+mostaccioli
+baetyl
+gardai
+gelinotte
+zamacueca
+geländesprung
+sittringee`.split('\n').map(w => w.trim()).filter(w => w);
+
+        let voices = [];
+        let audioFiles = {};
+        let audioContext, mediaStreamDest;
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += `${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function getFilename(word) {
+            return word.toLowerCase()
+                .replace(/[àáâãäå]/g, 'a')
+                .replace(/[èéêë]/g, 'e')
+                .replace(/[ìíîï]/g, 'i')
+                .replace(/[òóôõö]/g, 'o')
+                .replace(/[ùúûü]/g, 'u')
+                .replace(/[ñ]/g, 'n')
+                .replace(/[ç]/g, 'c')
+                .replace(/[ä]/g, 'a')
+                .replace(/[ö]/g, 'o')
+                .replace(/[ü]/g, 'u')
+                .replace(/[ß]/g, 'ss')
+                .replace(/\s+/g, '_')
+                .replace(/[^a-z0-9_]/g, '');
+        }
+
+        function loadVoices() {
+            voices = speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+
+            if (voices.length) {
+                voiceSelect.innerHTML = voices
+                    .filter(v => v.lang.startsWith('en'))
+                    .map((v, i) => {
+                        const isRecommended = v.name.includes('Google') && v.lang === 'en-US';
+                        return `<option value="${i}" ${isRecommended ? 'selected' : ''}>
+                            ${v.name} (${v.lang}) ${isRecommended ? '⭐ RECOMMENDED' : ''}
+                        </option>`;
+                    }).join('');
+                log(`✓ Loaded ${voices.length} voices`);
+            } else {
+                setTimeout(loadVoices, 100);
+            }
+        }
+
+        speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        document.getElementById('rateSlider').addEventListener('input', (e) => {
+            document.getElementById('rateValue').textContent = e.target.value;
+        });
+
+        async function generateAudioForWord(word, voice, rate) {
+            return new Promise((resolve, reject) => {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.voice = voice;
+                utterance.rate = parseFloat(rate);
+                utterance.lang = 'en-US';
+
+                const chunks = [];
+                const mediaRecorder = new MediaRecorder(mediaStreamDest.stream);
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) chunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    resolve(blob);
+                };
+
+                utterance.onend = () => {
+                    setTimeout(() => mediaRecorder.stop(), 500);
+                };
+
+                utterance.onerror = reject;
+
+                mediaRecorder.start();
+                speechSynthesis.speak(utterance);
+
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                    reject(new Error('Timeout'));
+                }, 10000);
+            });
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const rateSlider = document.getElementById('rateSlider');
+            const selectedVoice = voices[voiceSelect.value];
+            const rate = rateSlider.value;
+
+            if (!selectedVoice) {
+                log('❌ Please select a voice first');
+                return;
+            }
+
+            // Initialize audio context
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            mediaStreamDest = audioContext.createMediaStreamDestination();
+
+            const generateBtn = document.getElementById('generateBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const progressDiv = document.getElementById('progress');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            generateBtn.disabled = true;
+            downloadBtn.disabled = true;
+            progressDiv.classList.remove('hidden');
+
+            log(`\n🎙️  Starting generation with ${selectedVoice.name} at rate ${rate}...\n`);
+
+            let success = 0;
+            let failed = 0;
+
+            for (let i = 0; i < WORDS.length; i++) {
+                const word = WORDS[i];
+                const filename = getFilename(word);
+
+                try {
+                    const audioBlob = await generateAudioForWord(word, selectedVoice, rate);
+                    audioFiles[`${filename}.webm`] = audioBlob;
+                    success++;
+                    log(`✅ [${i + 1}/${WORDS.length}] "${word}" -> ${filename}.webm`);
+                } catch (error) {
+                    failed++;
+                    log(`❌ [${i + 1}/${WORDS.length}] Failed "${word}": ${error.message}`);
+                }
+
+                const progress = ((i + 1) / WORDS.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `Generated ${i + 1} of ${WORDS.length} words...`;
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            log(`\n${'='.repeat(50)}`);
+            log(`✅ Success: ${success}`);
+            log(`❌ Failed: ${failed}`);
+            log(`${'='.repeat(50)}\n`);
+
+            generateBtn.disabled = false;
+            downloadBtn.disabled = false;
+            progressText.textContent = `Complete! ${success} files ready to download.`;
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', async () => {
+            log('📦 Creating ZIP file...');
+
+            const zip = new JSZip();
+            for (const [filename, blob] of Object.entries(audioFiles)) {
+                zip.file(filename, blob);
+            }
+
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(zipBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'word-club-audio.zip';
+            a.click();
+
+            log('✅ Download started!');
+        });
+    </script>
+</body>
+</html>
