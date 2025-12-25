@@ -575,6 +575,10 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
             const [appData, setAppData] = useState(loadAppData());
             const [userData, setUserData] = useState(() => loadUserData(loadAppData()));
             const [newAchievements, setNewAchievements] = useState([]);
+            const [showCreateProfile, setShowCreateProfile] = useState(false);
+            const [newProfileName, setNewProfileName] = useState('');
+            const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_EMOJIS[0]);
+            const [selectedColor, setSelectedColor] = useState(PROFILE_COLORS[0]);
             const inputRef = useRef(null);
             const audioRef = useRef(null); // Track current audio
 
@@ -913,11 +917,6 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
 
             // PROFILE SELECTOR SCREEN
             if (mode === 'profile-selector') {
-                const [showCreateProfile, setShowCreateProfile] = useState(false);
-                const [newProfileName, setNewProfileName] = useState('');
-                const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_EMOJIS[0]);
-                const [selectedColor, setSelectedColor] = useState(PROFILE_COLORS[0]);
-
                 const handleSelectProfile = (profileId) => {
                     const newAppData = switchProfile(appData, profileId);
                     setAppData(newAppData);
@@ -930,6 +929,10 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                         const newAppData = createProfile(appData, newProfileName.trim(), selectedAvatar, selectedColor);
                         setAppData(newAppData);
                         setUserData(loadUserData(newAppData));
+                        setShowCreateProfile(false);
+                        setNewProfileName('');
+                        setSelectedAvatar(AVATAR_EMOJIS[0]);
+                        setSelectedColor(PROFILE_COLORS[0]);
                         setMode('home');
                     }
                 };
