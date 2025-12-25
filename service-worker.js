@@ -1,8 +1,8 @@
 // Word Club Service Worker
 // Handles offline functionality and caching
 
-const CACHE_NAME = 'word-club-v1';
-const AUDIO_CACHE_NAME = 'word-club-audio-v1';
+const CACHE_NAME = 'word-club-v2';
+const AUDIO_CACHE_NAME = 'word-club-audio-v2';
 
 // Files to cache immediately (critical resources)
 const CRITICAL_ASSETS = [
