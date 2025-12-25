@@ -2,15 +2,26 @@
 
 ## Test Suite
 
-This project includes a comprehensive test suite with **50 unit tests** covering all core functionality, including localStorage persistence and learning analytics.
+This project includes a comprehensive test suite with:
+- **50 unit tests** covering all core functionality
+- **15 integration tests** covering complete user flows and real-world scenarios
+
+**Total: 65 tests, 100% passing** ✅
 
 ## Running Tests
 
 ```bash
+# Run all tests (unit + integration)
 npm test
+
+# Run only unit tests
+npm run test:unit
+
+# Run only integration tests
+npm run test:integration
 ```
 
-## Test Coverage
+## Unit Test Coverage (50 tests)
 
 ### Word List Tests (4 tests)
 - ✓ Verifies exactly 221 words in the list
@@ -91,16 +102,41 @@ npm test
 - ✓ Words with 0 attempts don't appear in missed words
 - ✓ Handles empty/null word history gracefully
 
+## Integration Test Coverage (15 tests)
+
+### Complete User Flow Tests (8 tests)
+- ✓ **Complete Listen & Spell session** - Full game flow from start to finish
+- ✓ **Data persists across sessions** - localStorage saves and loads correctly
+- ✓ **Missed words workflow** - Detection and practice of problem words
+- ✓ **Path from beginner to mastery** - Progressive improvement tracking
+- ✓ **Streak tracking** - Best streak persists across sessions
+- ✓ **Difficulty preference persistence** - Settings survive app restarts
+- ✓ **Complete Unscramble mode** - Full unscramble game flow
+- ✓ **Cumulative stats** - Multiple sessions accumulate correctly
+
+### Edge Case & Error Handling Tests (3 tests)
+- ✓ **Graceful corrupted localStorage** - Handles invalid data without crashing
+- ✓ **Large practice session** - Stress test with 50 words
+- ✓ **Repeated word practice** - Same word multiple times in one session
+
+### Real-World Scenario Tests (4 tests)
+- ✓ **Mastery stats with diverse progress** - Mixed word mastery levels
+- ✓ **Accuracy threshold boundaries** - 49%, 50%, 79%, 80% edge cases
+- ✓ **Student practice week** - Multi-day realistic usage pattern
+- ✓ **Performance with large history** - Load/save all 221 words efficiently
+
 ## Test Results
 
 ```
-🧪 50 tests
-✅ 50 passed
-❌ 0 failed
+Unit Tests:       50 passed, 0 failed
+Integration Tests: 15 passed, 0 failed
+─────────────────────────────────────
+Total:            65 passed, 0 failed ✅
 ```
 
 ## What's Tested
 
+### Unit Tests (50)
 1. **Word List Integrity**: Ensures the word list has exactly 221 unique, non-empty words
 2. **Difficulty Categorization**: Verifies each difficulty level contains the correct number of words
 3. **Spelling Logic**: Tests the core spelling check algorithm with various inputs
@@ -112,24 +148,76 @@ npm test
 9. **Edge Cases**: Tests boundary conditions and error scenarios
 10. **Performance**: Verifies functions handle full 221-word list efficiently
 
+### Integration Tests (15)
+1. **Complete Game Sessions**: Tests full Listen & Spell and Unscramble flows
+2. **Multi-Session Persistence**: Verifies data survives app restarts and accumulates correctly
+3. **Learning Progression**: Tests path from first attempt to mastery
+4. **Missed Words System**: Validates detection, filtering, and focused practice
+5. **Statistics Tracking**: Tests score, streak, and progress calculations across sessions
+6. **Settings Persistence**: Ensures difficulty preferences and other settings save
+7. **Error Handling**: Tests graceful degradation with corrupted data
+8. **Real-World Scenarios**: Simulates realistic student usage patterns
+9. **Performance at Scale**: Tests with large datasets (50+ words, full history)
+10. **Boundary Conditions**: Tests accuracy thresholds (49%, 50%, 79%, 80%)
+
 ## Test Philosophy
 
-- **Comprehensive Coverage**: 50 tests cover all critical code paths
+- **Comprehensive Coverage**: 65 tests covering all critical code paths
+- **Unit + Integration**: Tests both individual functions and complete user flows
 - **Boundary Testing**: Tests edge cases (0%, 50%, 80%, 100% accuracy)
-- **Integration Testing**: Tests realistic usage scenarios
+- **Integration Testing**: Tests realistic usage scenarios and multi-session flows
 - **Performance Testing**: Ensures scalability with full word list
 - **Data Validation**: Validates structure and types
+- **Error Resilience**: Tests graceful handling of corrupted data
 
 ## What's NOT Tested
 
 These require browser/DOM testing (future work):
-- React component rendering
-- User interactions (button clicks, typing)
+- React component rendering (no DOM available in Node.js tests)
+- User interactions via actual DOM events (button clicks, typing in input fields)
 - Audio playback (pre-recorded AIFF files)
-- State management (React hooks)
-- Navigation between modes
-- localStorage read/write operations (requires browser environment)
+- Visual rendering and CSS
 - PWA service worker functionality
+- Actual localStorage browser API (mocked in integration tests)
+
+Note: Integration tests use localStorage mock to simulate browser behavior.
+
+## Key Integration Test Scenarios
+
+### 1. Complete Listen & Spell Session
+Tests the full flow of a spelling practice session including:
+- Starting with a fresh state
+- Attempting 5 words (3 correct, 2 incorrect)
+- Score and streak calculation
+- Word history tracking
+- localStorage persistence
+
+### 2. Multi-Session Persistence
+Simulates app restart by:
+- Session 1: Practice and save
+- Reload from localStorage
+- Session 2: Continue practicing
+- Verify cumulative progress
+
+### 3. Missed Words Workflow
+Tests the core learning feature:
+- Practice words with mixed accuracy
+- Identify words with <50% accuracy
+- Focus practice on missed words
+- Verify improvement after targeted practice
+
+### 4. Path to Mastery
+Tracks progression from beginner to mastery:
+- First attempt (incorrect) → needs practice
+- 50% accuracy → neither mastered nor needing practice
+- 80% with 3+ correct → mastered status
+
+### 5. Real-World Student Usage
+Simulates a week of practice:
+- Monday: Learn 10 new words
+- Tuesday: Review + 5 new words
+- Friday: Focus on missed words
+- Verifies cumulative progress and improvement
 
 ## Running Tests Automatically
 

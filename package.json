@@ -1,11 +1,14 @@
 {
   "name": "word-club-spelling",
   "version": "1.0.0",
-  "description": "Spelling practice app unit tests",
+  "description": "Spelling practice app with comprehensive test suite",
   "scripts": {
-    "test": "node tests/app.test.js"
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "node tests/app.test.js",
+    "test:integration": "node tests/integration.test.js",
+    "test:all": "npm run test:unit && npm run test:integration"
   },
-  "keywords": ["spelling", "education"],
+  "keywords": ["spelling", "education", "pwa"],
   "author": "",
   "license": "MIT"
 }
