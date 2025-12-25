@@ -274,6 +274,95 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
             React.createElement('polyline', { points: '9 22 9 12 15 12 15 22' })
         );
 
+        // localStorage utilities
+        const STORAGE_KEY = 'wordClubData';
+
+        const getDefaultUserData = () => ({
+            settings: {
+                difficulty: 'all'
+            },
+            stats: {
+                totalWordsAttempted: 0,
+                totalCorrect: 0,
+                bestStreak: 0,
+                sessionCount: 1,
+                lastPlayed: new Date().toISOString()
+            },
+            wordHistory: {}, // { wordName: { attempts: 0, correct: 0, lastAttempt: timestamp } }
+            achievements: []
+        });
+
+        const loadUserData = () => {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    // Merge with defaults to handle new properties
+                    return { ...getDefaultUserData(), ...data };
+                }
+            } catch (error) {
+                console.error('Failed to load user data:', error);
+            }
+            return getDefaultUserData();
+        };
+
+        const saveUserData = (userData) => {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+            } catch (error) {
+                console.error('Failed to save user data:', error);
+            }
+        };
+
+        const updateWordHistory = (userData, word, isCorrect) => {
+            const wordHistory = { ...userData.wordHistory };
+            if (!wordHistory[word]) {
+                wordHistory[word] = { attempts: 0, correct: 0, lastAttempt: null };
+            }
+            wordHistory[word].attempts += 1;
+            if (isCorrect) {
+                wordHistory[word].correct += 1;
+            }
+            wordHistory[word].lastAttempt = new Date().toISOString();
+            return wordHistory;
+        };
+
+        const getMissedWords = (userData, allWords) => {
+            return allWords.filter(word => {
+                const history = userData.wordHistory[word];
+                if (!history || history.attempts === 0) return false; // Not attempted yet
+                const accuracy = history.correct / history.attempts;
+                return accuracy < 0.5; // Less than 50% accuracy
+            });
+        };
+
+        const getMasteryStats = (userData, allWords) => {
+            let mastered = 0;
+            let practiced = 0;
+            let needsPractice = 0;
+
+            allWords.forEach(word => {
+                const history = userData.wordHistory[word];
+                if (!history || history.attempts === 0) return;
+
+                practiced++;
+                const accuracy = history.correct / history.attempts;
+
+                if (accuracy >= 0.8 && history.correct >= 3) {
+                    mastered++; // 80%+ accuracy and at least 3 correct
+                } else if (accuracy < 0.5) {
+                    needsPractice++;
+                }
+            });
+
+            return {
+                mastered,
+                practiced,
+                needsPractice,
+                notPracticed: allWords.length - practiced
+            };
+        };
+
         function SpellingApp() {
             const [mode, setMode] = useState('home');
             const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -286,8 +375,15 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
             const [scrambledLetters, setScrambledLetters] = useState([]);
             const [selectedLetters, setSelectedLetters] = useState([]);
             const [difficultyFilter, setDifficultyFilter] = useState('all');
+            const [userData, setUserData] = useState(loadUserData());
             const inputRef = useRef(null);
             const audioRef = useRef(null); // Track current audio
+
+            // Load saved difficulty preference on mount
+            useEffect(() => {
+                const loaded = loadUserData();
+                setDifficultyFilter(loaded.settings.difficulty);
+            }, []);
 
             useEffect(() => {
                 const filtered = filterWordsByDifficulty(WORDS, difficultyFilter);
@@ -400,7 +496,25 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                 const correct = userInput.toLowerCase().trim() === shuffledWords[currentWordIndex].toLowerCase();
                 setFeedback(correct ? 'correct' : 'incorrect');
                 setWordsAttempted(wordsAttempted + 1);
-                correct ? (setScore(score + 1), setStreak(streak + 1)) : setStreak(0);
+
+                // Update userData
+                const newUserData = { ...userData };
+                newUserData.stats.totalWordsAttempted += 1;
+                if (correct) {
+                    newUserData.stats.totalCorrect += 1;
+                    setScore(score + 1);
+                    const newStreak = streak + 1;
+                    setStreak(newStreak);
+                    if (newStreak > newUserData.stats.bestStreak) {
+                        newUserData.stats.bestStreak = newStreak;
+                    }
+                } else {
+                    setStreak(0);
+                }
+                newUserData.wordHistory = updateWordHistory(newUserData, shuffledWords[currentWordIndex], correct);
+                newUserData.stats.lastPlayed = new Date().toISOString();
+                setUserData(newUserData);
+                saveUserData(newUserData);
             };
 
             const checkUnscramble = () => {
@@ -408,7 +522,25 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                 const correct = userWord.toLowerCase() === shuffledWords[currentWordIndex].toLowerCase();
                 setFeedback(correct ? 'correct' : 'incorrect');
                 setWordsAttempted(wordsAttempted + 1);
-                correct ? (setScore(score + 1), setStreak(streak + 1)) : setStreak(0);
+
+                // Update userData
+                const newUserData = { ...userData };
+                newUserData.stats.totalWordsAttempted += 1;
+                if (correct) {
+                    newUserData.stats.totalCorrect += 1;
+                    setScore(score + 1);
+                    const newStreak = streak + 1;
+                    setStreak(newStreak);
+                    if (newStreak > newUserData.stats.bestStreak) {
+                        newUserData.stats.bestStreak = newStreak;
+                    }
+                } else {
+                    setStreak(0);
+                }
+                newUserData.wordHistory = updateWordHistory(newUserData, shuffledWords[currentWordIndex], correct);
+                newUserData.stats.lastPlayed = new Date().toISOString();
+                setUserData(newUserData);
+                saveUserData(newUserData);
             };
 
             const continueToNext = () => {
@@ -447,6 +579,26 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
 
             // HOME SCREEN
             if (mode === 'home') {
+                const masteryStats = getMasteryStats(userData, WORDS);
+                const missedWords = getMissedWords(userData, WORDS);
+
+                const handleDifficultyChange = (difficulty) => {
+                    setDifficultyFilter(difficulty);
+                    const newUserData = { ...userData };
+                    newUserData.settings.difficulty = difficulty;
+                    setUserData(newUserData);
+                    saveUserData(newUserData);
+                };
+
+                const startPracticeMistakes = () => {
+                    const missed = getMissedWords(userData, WORDS);
+                    if (missed.length > 0) {
+                        setShuffledWords([...missed].sort(() => Math.random() - 0.5));
+                        setCurrentWordIndex(0);
+                        setMode('practice');
+                    }
+                };
+
                 return React.createElement('div', { className: 'min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 p-4 flex items-center justify-center' },
                     React.createElement('div', { className: 'bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full' },
                         React.createElement('div', { className: 'text-center mb-8' },
@@ -457,15 +609,36 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                             React.createElement('label', { className: 'block text-sm font-semibold text-gray-700 mb-2' }, 'Difficulty:'),
                             React.createElement('div', { className: 'grid grid-cols-2 gap-2' },
                                 React.createElement('button', {
-                                    onClick: () => setDifficultyFilter('all'),
+                                    onClick: () => handleDifficultyChange('all'),
                                     className: `px-4 py-2 rounded-lg font-medium ${difficultyFilter === 'all' ? 'bg-purple-500 text-white' : 'bg-gray-200'}`
                                 }, 'All'),
-                                ['very-easy', 'easy', 'medium', 'medium-hard', 'hard', 'very-hard'].map(level => 
+                                ['very-easy', 'easy', 'medium', 'medium-hard', 'hard', 'very-hard'].map(level =>
                                     React.createElement('button', {
                                         key: level,
-                                        onClick: () => setDifficultyFilter(level),
+                                        onClick: () => handleDifficultyChange(level),
                                         className: `px-4 py-2 rounded-lg font-medium ${difficultyFilter === level ? 'bg-purple-500 text-white' : 'bg-gray-200'}`
                                     }, level.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '))
+                                )
+                            )
+                        ),
+                        masteryStats.practiced > 0 && React.createElement('div', { className: 'mb-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4' },
+                            React.createElement('h3', { className: 'text-sm font-bold text-purple-700 mb-3' }, '📊 Your Progress'),
+                            React.createElement('div', { className: 'grid grid-cols-2 gap-3 text-center' },
+                                React.createElement('div', { className: 'bg-white rounded-lg p-3' },
+                                    React.createElement('div', { className: 'text-2xl font-bold text-green-600' }, masteryStats.mastered),
+                                    React.createElement('div', { className: 'text-xs text-gray-600' }, 'Mastered')
+                                ),
+                                React.createElement('div', { className: 'bg-white rounded-lg p-3' },
+                                    React.createElement('div', { className: 'text-2xl font-bold text-blue-600' }, masteryStats.practiced),
+                                    React.createElement('div', { className: 'text-xs text-gray-600' }, 'Practiced')
+                                ),
+                                React.createElement('div', { className: 'bg-white rounded-lg p-3' },
+                                    React.createElement('div', { className: 'text-2xl font-bold text-orange-600' }, masteryStats.needsPractice),
+                                    React.createElement('div', { className: 'text-xs text-gray-600' }, 'Needs Practice')
+                                ),
+                                React.createElement('div', { className: 'bg-white rounded-lg p-3' },
+                                    React.createElement('div', { className: 'text-2xl font-bold text-purple-600' }, userData.stats.bestStreak),
+                                    React.createElement('div', { className: 'text-xs text-gray-600' }, 'Best Streak')
                                 )
                             )
                         ),
@@ -475,7 +648,14 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                         React.createElement('div', { className: 'space-y-4' },
                             React.createElement('button', { onClick: () => setMode('listen'), className: 'w-full bg-blue-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Listen & Spell'),
                             React.createElement('button', { onClick: () => setMode('unscramble'), className: 'w-full bg-green-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Unscramble'),
-                            React.createElement('button', { onClick: () => setMode('practice'), className: 'w-full bg-purple-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Study Mode')
+                            React.createElement('button', { onClick: () => setMode('practice'), className: 'w-full bg-purple-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Study Mode'),
+                            missedWords.length > 0 && React.createElement('button', {
+                                onClick: startPracticeMistakes,
+                                className: 'w-full bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2'
+                            },
+                                React.createElement('span', null, '⚠️'),
+                                React.createElement('span', null, `Practice Mistakes (${missedWords.length})`)
+                            )
                         )
                     )
                 );
