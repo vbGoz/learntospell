@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Word Club Icons</title>
+</head>
+<body>
+    <h1>Generate Word Club Icons</h1>
+    <p>Right-click each canvas below and save as PNG:</p>
+
+    <h2>192x192 Icon</h2>
+    <canvas id="icon192" width="192" height="192"></canvas>
+
+    <h2>512x512 Icon</h2>
+    <canvas id="icon512" width="512" height="512"></canvas>
+
+    <script>
+        function createIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+
+            // Purple gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#9333ea'); // purple-600
+            gradient.addColorStop(1, '#ec4899'); // pink-500
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            // Add rounded corners effect
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.2);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Draw "W" letter
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.6}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('W', size / 2, size / 2);
+
+            // Add small "Club" text
+            ctx.font = `${size * 0.12}px Arial`;
+            ctx.fillText('CLUB', size / 2, size * 0.75);
+        }
+
+        createIcon(document.getElementById('icon192'), 192);
+        createIcon(document.getElementById('icon512'), 512);
+    </script>
+
+    <div style="margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Right-click on each canvas above</li>
+            <li>Select "Save Image As..." or "Download Image"</li>
+            <li>Save the 192x192 canvas as <code>icon-192.png</code></li>
+            <li>Save the 512x512 canvas as <code>icon-512.png</code></li>
+            <li>Place both files in the root directory of your project (next to index.html)</li>
+        </ol>
+
+        <h3>Alternative: Use a Design Tool</h3>
+        <p>For better quality, create icons using:</p>
+        <ul>
+            <li><strong>Figma</strong> (free): Create a 512x512 square with purple gradient and "W" text</li>
+            <li><strong>Canva</strong> (free): Use icon templates</li>
+            <li><strong>Online Icon Generator</strong>: <a href="https://www.pwabuilder.com/imageGenerator" target="_blank">PWA Builder Image Generator</a></li>
+        </ul>
+
+        <h3>Icon Requirements:</h3>
+        <ul>
+            <li>192x192 pixels: Required for PWA</li>
+            <li>512x512 pixels: Required for splash screens</li>
+            <li>Format: PNG with transparency</li>
+            <li>Colors: Purple theme (#9333ea) to match app</li>
+        </ul>
+    </div>
+</body>
+</html>

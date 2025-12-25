@@ -1,0 +1,49 @@
+{
+  "name": "Word Club - Spelling Practice",
+  "short_name": "Word Club",
+  "description": "Master your spelling skills with 221 spelling bee words, 3 game modes, and high-quality audio",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#9333ea",
+  "theme_color": "#9333ea",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "games"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Listen & Spell",
+      "short_name": "Listen",
+      "description": "Hear the word and type it",
+      "url": "./index.html?mode=listen",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Unscramble",
+      "short_name": "Unscramble",
+      "description": "Arrange scrambled letters",
+      "url": "./index.html?mode=unscramble",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Study Mode",
+      "short_name": "Study",
+      "description": "Practice with words visible",
+      "url": "./index.html?mode=study",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
