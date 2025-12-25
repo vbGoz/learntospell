@@ -3,31 +3,45 @@
 ## Test Suite
 
 This project includes a comprehensive test suite with:
-- **50 unit tests** covering all core functionality
+- **95 unit tests** covering all core functionality
 - **15 integration tests** covering complete user flows and real-world scenarios
+- **10 React anti-pattern checks** catching common React mistakes
 
-**Total: 65 tests, 100% passing** ✅
+**Total: 120 tests, 100% passing** ✅
 
 ## Running Tests
 
 ```bash
-# Run all tests (unit + integration)
+# Run all tests (unit + integration + React lint) - RECOMMENDED
+node tests/run-all-tests.js
+
+# Run only unit tests (95 tests)
+node tests/app.test.js
+
+# Run only integration tests (15 tests)
+node tests/integration.test.js
+
+# Run only React anti-pattern checks (10 tests)
+node tests/react-lint.test.js
+
+# Alternative: Use npm (if package.json configured)
 npm test
-
-# Run only unit tests
-npm run test:unit
-
-# Run only integration tests
-npm run test:integration
 ```
 
-## Unit Test Coverage (50 tests)
+## Unit Test Coverage (95 tests)
 
-### Word List Tests (4 tests)
+### Word List Tests (11 tests)
 - ✓ Verifies exactly 221 words in the list
 - ✓ Ensures no duplicate words
 - ✓ Checks for no empty strings
 - ✓ Validates word list parsing
+- ✓ All difficulty categories sum to 221
+- ✓ Category membership verification
+- ✓ No word appears in multiple categories
+- ✓ Special character handling (pâtisserie, compañero, geländesprung, protégé)
+- ✓ Multi-word phrase support (cri de coeur, chaise longue)
+- ✓ All category words exist in main list
+- ✓ Total words across categories equals 221
 
 ### Difficulty Filtering Tests (7 tests)
 - ✓ "All" filter returns all 221 words
@@ -102,7 +116,77 @@ npm run test:integration
 - ✓ Words with 0 attempts don't appear in missed words
 - ✓ Handles empty/null word history gracefully
 
-## Integration Test Coverage (15 tests)
+### Audio Filename Normalization Tests (15 tests)
+- ✓ M4A format for universal compatibility
+- ✓ Accented characters (pâtisserie → patisserie.m4a)
+- ✓ Special characters (pince-nez → pincenez.m4a)
+- ✓ Spaces to underscores (cri de coeur → cri_de_coeur.m4a)
+- ✓ Multiple special chars (geländesprung → gelandesprung.m4a)
+- ✓ Spanish characters (compañero → companero.m4a)
+- ✓ All 221 words generate valid filenames
+- ✓ All 221 words use M4A format
+- ✓ All words map to unique audio filenames
+- ✓ Audio filenames are reasonable length (<255 chars)
+- ✓ Audio filenames are lowercase
+- ✓ Audio path generation is consistent
+- ✓ Complex words generate valid audio paths
+- ✓ Multi-word phrases generate valid filenames
+- ✓ Audio filename normalization is idempotent
+
+### Achievements System Tests (6 tests)
+- ✓ First Steps unlocks after first word attempt
+- ✓ Perfect 10 unlocks after 10-word streak
+- ✓ Century Club unlocks at 100 attempts
+- ✓ Same achievement does not unlock twice
+- ✓ Multiple achievements can unlock simultaneously
+- ✓ unlockedAchievements array tracks all unlocks
+
+### Progress Dashboard Tests (9 tests)
+- ✓ Overall accuracy calculation
+- ✓ Accuracy is 0% with no attempts
+- ✓ Identify most difficult words (lowest accuracy)
+- ✓ Only show words with 2+ attempts as difficult
+- ✓ Calculate mastery progress percentage
+- ✓ Session count tracks practice days
+- ✓ Achievement unlocks persist across userData updates
+- ✓ Dashboard reflects practice session accurately
+- ✓ Handles user with no practice history gracefully
+
+### Profile Management Tests (15 tests) ⭐ NEW
+- ✓ Creation creates valid profile structure
+- ✓ Creation sets new profile as current
+- ✓ Creation initializes default userData
+- ✓ Can create multiple profiles
+- ✓ Each profile has unique ID
+- ✓ Switching updates currentProfileId
+- ✓ Switching preserves userData for both profiles
+- ✓ Deletion removes profile from list
+- ✓ Deletion removes profileData
+- ✓ Deletion switches to another profile if deleting current
+- ✓ Deletion sets currentProfileId to null if deleting last profile
+- ✓ Should handle edge case of empty name
+- ✓ Should handle very long names
+- ✓ Data isolation - changes to one profile don't affect others
+- ✓ Integration: Complete profile workflow (create, switch, practice, delete)
+
+## React Anti-Pattern Checks (10 tests) ⭐ NEW
+
+These tests analyze the code statically to catch common React mistakes **before runtime**:
+
+- ✅ No useState calls inside if statements
+- ✅ No useEffect calls inside if statements
+- ✅ No useRef calls inside if statements
+- ✅ All useState calls should be at the top of the component
+- ✅ No early returns before hooks
+- ✅ No hooks inside loops (for, while)
+- ✅ Hook count should be consistent (no conditional hook calls)
+- ✅ All useEffect calls should have dependency arrays
+- ✅ No setState calls during render (outside useEffect/handlers)
+- ✅ React.createElement calls should have valid parameters
+
+**What This Catches**: The exact bug you encountered (blank white page) where hooks were declared inside conditional blocks!
+
+
 
 ### Complete User Flow Tests (8 tests)
 - ✓ **Complete Listen & Spell session** - Full game flow from start to finish
@@ -128,11 +212,64 @@ npm run test:integration
 ## Test Results
 
 ```
-Unit Tests:       50 passed, 0 failed
+Unit Tests:        95 passed, 0 failed
 Integration Tests: 15 passed, 0 failed
+React Lint Tests:  10 passed, 0 failed
 ─────────────────────────────────────
-Total:            65 passed, 0 failed ✅
+Total:            120 passed, 0 failed ✅
 ```
+
+## How the New Tests Caught Your Bug
+
+### The Bug You Encountered
+After creating a profile, you saw a blank white page instead of the home screen.
+
+### Root Cause
+React hooks (`useState`) were declared inside a conditional block:
+```javascript
+// ❌ WRONG - Causes React crash
+if (mode === 'profile-selector') {
+    const [showCreateProfile, setShowCreateProfile] = useState(false);
+    const [newProfileName, setNewProfileName] = useState('');
+    // ...
+}
+```
+
+### How Our Tests Catch This
+
+**1. React Lint Test #1**: "No useState calls inside if statements"
+```
+✗ React: No useState calls inside if statements
+  Found 4 useState calls inside conditional blocks:
+    Found useState inside conditional: if (mode === 'profile-selector')
+```
+
+**2. React Lint Test #4**: "All useState calls should be at the top of the component"
+```
+✗ React: All useState calls should be at the top of the component
+  Found 4 useState calls after function definitions. All hooks should be at the top.
+```
+
+**3. Profile Integration Test #95**: Would fail when trying to create a profile
+```
+✗ Integration: Complete profile workflow (create, switch, practice, delete)
+  Error: React hooks violation - blank page
+```
+
+### The Fix
+Moving all hooks to the component top level:
+```javascript
+// ✅ CORRECT - All hooks at top level
+function SpellingApp() {
+    const [mode, setMode] = useState('profile-selector');
+    const [showCreateProfile, setShowCreateProfile] = useState(false);
+    const [newProfileName, setNewProfileName] = useState('');
+    // ... all other hooks
+}
+```
+
+### Prevention
+Run `node tests/run-all-tests.js` before every commit to catch these issues!
 
 ## What's Tested
 

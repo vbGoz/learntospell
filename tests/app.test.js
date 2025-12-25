@@ -1260,6 +1260,290 @@ test('Dashboard: Handles user with no practice history gracefully', () => {
     assertEqual(userData.stats.bestStreak, 0);
 });
 
+// ========== PROFILE MANAGEMENT TESTS ==========
+
+// Helper functions for profile management (from app)
+const AVATAR_EMOJIS_TEST = ['😊', '🌟', '🚀'];
+const PROFILE_COLORS_TEST = ['purple', 'blue', 'green'];
+
+const generateId = () => {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
+
+const getDefaultAppData = () => ({
+    profiles: [],
+    currentProfileId: null,
+    profileData: {}
+});
+
+const createProfile = (appData, name, avatar, color) => {
+    const profileId = generateId();
+    const profile = {
+        id: profileId,
+        name: name,
+        avatar: avatar,
+        color: color,
+        createdAt: new Date().toISOString()
+    };
+    appData.profiles.push(profile);
+    appData.profileData[profileId] = getDefaultUserData();
+    appData.currentProfileId = profileId;
+    return appData;
+};
+
+const switchProfile = (appData, profileId) => {
+    appData.currentProfileId = profileId;
+    return appData;
+};
+
+const deleteProfile = (appData, profileId) => {
+    appData.profiles = appData.profiles.filter(p => p.id !== profileId);
+    delete appData.profileData[profileId];
+    if (appData.currentProfileId === profileId) {
+        appData.currentProfileId = appData.profiles.length > 0 ? appData.profiles[0].id : null;
+    }
+    return appData;
+};
+
+// Test 81: Profile creation - creates valid profile structure
+test('Profile: Creation creates valid profile structure', () => {
+    const appData = getDefaultAppData();
+    const result = createProfile(appData, 'Alice', '😊', 'purple');
+
+    assertEqual(result.profiles.length, 1, 'Should have 1 profile');
+    assertEqual(result.profiles[0].name, 'Alice');
+    assertEqual(result.profiles[0].avatar, '😊');
+    assertEqual(result.profiles[0].color, 'purple');
+    assertTrue(result.profiles[0].id !== undefined, 'Profile should have ID');
+    assertTrue(result.profiles[0].createdAt !== undefined, 'Profile should have createdAt');
+});
+
+// Test 82: Profile creation - sets as current profile
+test('Profile: Creation sets new profile as current', () => {
+    const appData = getDefaultAppData();
+    const result = createProfile(appData, 'Alice', '😊', 'purple');
+
+    assertTrue(result.currentProfileId !== null, 'Should have current profile');
+    assertEqual(result.currentProfileId, result.profiles[0].id, 'Current should match created profile');
+});
+
+// Test 83: Profile creation - initializes userData
+test('Profile: Creation initializes default userData', () => {
+    const appData = getDefaultAppData();
+    const result = createProfile(appData, 'Alice', '😊', 'purple');
+    const profileId = result.profiles[0].id;
+
+    assertTrue(result.profileData[profileId] !== undefined, 'Should have profileData');
+    assertEqual(result.profileData[profileId].stats.totalWordsAttempted, 0);
+    assertEqual(result.profileData[profileId].stats.totalCorrect, 0);
+    assertTrue(Array.isArray(result.profileData[profileId].unlockedAchievements));
+});
+
+// Test 84: Profile creation - handles multiple profiles
+test('Profile: Can create multiple profiles', () => {
+    let appData = getDefaultAppData();
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    appData = createProfile(appData, 'Bob', '🌟', 'blue');
+    appData = createProfile(appData, 'Charlie', '🚀', 'green');
+
+    assertEqual(appData.profiles.length, 3, 'Should have 3 profiles');
+    assertEqual(appData.profiles[0].name, 'Alice');
+    assertEqual(appData.profiles[1].name, 'Bob');
+    assertEqual(appData.profiles[2].name, 'Charlie');
+    assertEqual(Object.keys(appData.profileData).length, 3, 'Should have 3 profile data entries');
+});
+
+// Test 85: Profile creation - each profile has unique ID
+test('Profile: Each profile has unique ID', () => {
+    let appData = getDefaultAppData();
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    appData = createProfile(appData, 'Bob', '🌟', 'blue');
+
+    const id1 = appData.profiles[0].id;
+    const id2 = appData.profiles[1].id;
+
+    assertTrue(id1 !== id2, 'Profile IDs should be unique');
+});
+
+// Test 86: Profile switching - updates currentProfileId
+test('Profile: Switching updates currentProfileId', () => {
+    let appData = getDefaultAppData();
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    appData = createProfile(appData, 'Bob', '🌟', 'blue');
+
+    const bobId = appData.profiles[1].id;
+    appData = switchProfile(appData, bobId);
+
+    assertEqual(appData.currentProfileId, bobId, 'Should switch to Bob');
+});
+
+// Test 87: Profile switching - preserves all profile data
+test('Profile: Switching preserves userData for both profiles', () => {
+    let appData = getDefaultAppData();
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    const aliceId = appData.profiles[0].id;
+
+    // Alice practices words
+    appData.profileData[aliceId].stats.totalWordsAttempted = 10;
+    appData.profileData[aliceId].stats.totalCorrect = 8;
+
+    // Create Bob
+    appData = createProfile(appData, 'Bob', '🌟', 'blue');
+    const bobId = appData.profiles[1].id;
+
+    // Bob practices words
+    appData.profileData[bobId].stats.totalWordsAttempted = 5;
+    appData.profileData[bobId].stats.totalCorrect = 5;
+
+    // Switch back to Alice
+    appData = switchProfile(appData, aliceId);
+
+    // Alice's data should be preserved
+    assertEqual(appData.profileData[aliceId].stats.totalWordsAttempted, 10);
+    assertEqual(appData.profileData[aliceId].stats.totalCorrect, 8);
+
+    // Bob's data should also be preserved
+    assertEqual(appData.profileData[bobId].stats.totalWordsAttempted, 5);
+    assertEqual(appData.profileData[bobId].stats.totalCorrect, 5);
+});
+
+// Test 88: Profile deletion - removes profile from list
+test('Profile: Deletion removes profile from list', () => {
+    let appData = getDefaultAppData();
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    appData = createProfile(appData, 'Bob', '🌟', 'blue');
+    const bobId = appData.profiles[1].id;
+
+    appData = deleteProfile(appData, bobId);
+
+    assertEqual(appData.profiles.length, 1, 'Should have 1 profile left');
+    assertEqual(appData.profiles[0].name, 'Alice', 'Alice should remain');
+});
+
+// Test 89: Profile deletion - removes profileData
+test('Profile: Deletion removes profileData', () => {
+    let appData = getDefaultAppData();
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    appData = createProfile(appData, 'Bob', '🌟', 'blue');
+    const bobId = appData.profiles[1].id;
+
+    appData = deleteProfile(appData, bobId);
+
+    assertTrue(appData.profileData[bobId] === undefined, 'Bob\'s data should be deleted');
+    assertEqual(Object.keys(appData.profileData).length, 1, 'Should have 1 profile data entry');
+});
+
+// Test 90: Profile deletion - switches to another profile if deleting current
+test('Profile: Deletion switches to another profile if deleting current', () => {
+    let appData = getDefaultAppData();
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    appData = createProfile(appData, 'Bob', '🌟', 'blue');
+    const aliceId = appData.profiles[0].id;
+    const bobId = appData.profiles[1].id;
+
+    // Switch to Bob
+    appData = switchProfile(appData, bobId);
+    assertEqual(appData.currentProfileId, bobId);
+
+    // Delete Bob (current profile)
+    appData = deleteProfile(appData, bobId);
+
+    // Should auto-switch to Alice
+    assertEqual(appData.currentProfileId, aliceId, 'Should auto-switch to Alice');
+});
+
+// Test 91: Profile deletion - sets currentProfileId to null if last profile
+test('Profile: Deletion sets currentProfileId to null if deleting last profile', () => {
+    let appData = getDefaultAppData();
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    const aliceId = appData.profiles[0].id;
+
+    appData = deleteProfile(appData, aliceId);
+
+    assertEqual(appData.profiles.length, 0, 'Should have no profiles');
+    assertTrue(appData.currentProfileId === null, 'currentProfileId should be null');
+});
+
+// Test 92: Profile validation - empty name
+test('Profile: Should handle edge case of empty name', () => {
+    const appData = getDefaultAppData();
+    const result = createProfile(appData, '', '😊', 'purple');
+
+    // Function allows empty name, but UI should prevent this
+    assertEqual(result.profiles[0].name, '');
+});
+
+// Test 93: Profile validation - very long name
+test('Profile: Should handle very long names', () => {
+    const appData = getDefaultAppData();
+    const longName = 'A'.repeat(100);
+    const result = createProfile(appData, longName, '😊', 'purple');
+
+    assertEqual(result.profiles[0].name, longName);
+});
+
+// Test 94: Profile data isolation - changes to one profile don't affect others
+test('Profile: Data isolation - changes to one profile don\'t affect others', () => {
+    let appData = getDefaultAppData();
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    appData = createProfile(appData, 'Bob', '🌟', 'blue');
+    const aliceId = appData.profiles[0].id;
+    const bobId = appData.profiles[1].id;
+
+    // Alice unlocks achievements
+    appData.profileData[aliceId].unlockedAchievements = ['first-steps', 'perfect-10'];
+    appData.profileData[aliceId].stats.bestStreak = 10;
+
+    // Bob should have fresh data
+    assertEqual(appData.profileData[bobId].unlockedAchievements.length, 0);
+    assertEqual(appData.profileData[bobId].stats.bestStreak, 0);
+});
+
+// Test 95: Integration - Complete profile workflow
+test('Integration: Complete profile workflow (create, switch, practice, delete)', () => {
+    // Start fresh
+    let appData = getDefaultAppData();
+    assertEqual(appData.profiles.length, 0);
+
+    // Create Alice
+    appData = createProfile(appData, 'Alice', '😊', 'purple');
+    const aliceId = appData.profiles[0].id;
+    assertEqual(appData.currentProfileId, aliceId);
+
+    // Alice practices and gets achievements
+    appData.profileData[aliceId].stats.totalWordsAttempted = 15;
+    appData.profileData[aliceId].stats.totalCorrect = 12;
+    appData.profileData[aliceId].stats.bestStreak = 5;
+
+    // Create Bob
+    appData = createProfile(appData, 'Bob', '🌟', 'blue');
+    const bobId = appData.profiles[1].id;
+    assertEqual(appData.currentProfileId, bobId, 'Should auto-switch to Bob');
+
+    // Bob practices
+    appData.profileData[bobId].stats.totalWordsAttempted = 20;
+    appData.profileData[bobId].stats.totalCorrect = 18;
+    appData.profileData[bobId].stats.bestStreak = 10;
+
+    // Switch back to Alice
+    appData = switchProfile(appData, aliceId);
+    assertEqual(appData.currentProfileId, aliceId);
+
+    // Verify Alice's data is intact
+    assertEqual(appData.profileData[aliceId].stats.totalWordsAttempted, 15);
+    assertEqual(appData.profileData[aliceId].stats.totalCorrect, 12);
+    assertEqual(appData.profileData[aliceId].stats.bestStreak, 5);
+
+    // Delete Alice
+    appData = deleteProfile(appData, aliceId);
+    assertEqual(appData.profiles.length, 1);
+    assertEqual(appData.currentProfileId, bobId, 'Should auto-switch to Bob');
+
+    // Bob's data should still be intact
+    assertEqual(appData.profileData[bobId].stats.totalWordsAttempted, 20);
+    assertEqual(appData.profileData[bobId].stats.totalCorrect, 18);
+});
+
 // ========== RESULTS ==========
 
 console.log(`\n${'='.repeat(50)}`);
