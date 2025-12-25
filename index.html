@@ -295,8 +295,132 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                 lastPlayed: new Date().toISOString()
             },
             wordHistory: {}, // { wordName: { attempts: 0, correct: 0, lastAttempt: timestamp } }
-            achievements: []
+            achievements: [],
+            unlockedAchievements: []
         });
+
+        // Achievement definitions
+        const ACHIEVEMENTS = [
+            {
+                id: 'first-steps',
+                name: 'First Steps',
+                description: 'Complete your first word',
+                icon: '👣',
+                check: (userData) => userData.stats.totalWordsAttempted >= 1
+            },
+            {
+                id: 'perfect-10',
+                name: 'Perfect 10',
+                description: 'Get 10 correct answers in a row',
+                icon: '🔥',
+                check: (userData) => userData.stats.bestStreak >= 10
+            },
+            {
+                id: 'century-club',
+                name: 'Century Club',
+                description: 'Attempt 100 words',
+                icon: '💯',
+                check: (userData) => userData.stats.totalWordsAttempted >= 100
+            },
+            {
+                id: 'half-century',
+                name: 'Half Century',
+                description: 'Get 50 words correct',
+                icon: '⭐',
+                check: (userData) => userData.stats.totalCorrect >= 50
+            },
+            {
+                id: 'perfect-session',
+                name: 'Perfect Session',
+                description: 'Complete 10 words with 100% accuracy',
+                icon: '✨',
+                check: (userData) => {
+                    let perfectStreak = 0;
+                    let maxPerfectStreak = 0;
+                    Object.values(userData.wordHistory).forEach(word => {
+                        if (word.attempts > 0 && word.correct === word.attempts) {
+                            perfectStreak++;
+                            maxPerfectStreak = Math.max(maxPerfectStreak, perfectStreak);
+                        } else if (word.attempts > 0) {
+                            perfectStreak = 0;
+                        }
+                    });
+                    return maxPerfectStreak >= 10;
+                }
+            },
+            {
+                id: 'polyglot',
+                name: 'Polyglot',
+                description: 'Master 10 words with special characters',
+                icon: '🌍',
+                check: (userData) => {
+                    const specialWords = ['pâtisserie', 'compañero', 'geländesprung', 'protégé', 'pince-nez',
+                        'cri de coeur', 'chaise longue', 'Kilimanjaro', 'Charolais', 'maquisards'];
+                    let mastered = 0;
+                    specialWords.forEach(word => {
+                        const history = userData.wordHistory[word];
+                        if (history && history.attempts > 0) {
+                            const accuracy = history.correct / history.attempts;
+                            if (accuracy >= 0.8 && history.correct >= 3) {
+                                mastered++;
+                            }
+                        }
+                    });
+                    return mastered >= 10;
+                }
+            },
+            {
+                id: 'scholar',
+                name: 'Scholar',
+                description: 'Master 50 words',
+                icon: '📚',
+                check: (userData) => {
+                    const masteryStats = getMasteryStats(userData, WORDS);
+                    return masteryStats.mastered >= 50;
+                }
+            },
+            {
+                id: 'dictionary',
+                name: 'Dictionary Master',
+                description: 'Master all 221 words',
+                icon: '📖',
+                check: (userData) => {
+                    const masteryStats = getMasteryStats(userData, WORDS);
+                    return masteryStats.mastered >= 221;
+                }
+            },
+            {
+                id: 'consistent-learner',
+                name: 'Consistent Learner',
+                description: 'Practice on 7 different days',
+                icon: '📅',
+                check: (userData) => {
+                    return userData.stats.sessionCount >= 7;
+                }
+            },
+            {
+                id: 'quick-study',
+                name: 'Quick Study',
+                description: 'Get 20 words correct',
+                icon: '⚡',
+                check: (userData) => userData.stats.totalCorrect >= 20
+            }
+        ];
+
+        const checkAchievements = (userData) => {
+            const newlyUnlocked = [];
+            ACHIEVEMENTS.forEach(achievement => {
+                const alreadyUnlocked = (userData.unlockedAchievements || []).includes(achievement.id);
+                if (!alreadyUnlocked && achievement.check(userData)) {
+                    newlyUnlocked.push(achievement);
+                    if (!userData.unlockedAchievements) {
+                        userData.unlockedAchievements = [];
+                    }
+                    userData.unlockedAchievements.push(achievement.id);
+                }
+            });
+            return newlyUnlocked;
+        };
 
         const getDefaultAppData = () => ({
             profiles: [],
@@ -450,6 +574,7 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
             const [difficultyFilter, setDifficultyFilter] = useState('all');
             const [appData, setAppData] = useState(loadAppData());
             const [userData, setUserData] = useState(() => loadUserData(loadAppData()));
+            const [newAchievements, setNewAchievements] = useState([]);
             const inputRef = useRef(null);
             const audioRef = useRef(null); // Track current audio
 
@@ -676,6 +801,13 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                 }
                 newUserData.wordHistory = updateWordHistory(newUserData, shuffledWords[currentWordIndex], correct);
                 newUserData.stats.lastPlayed = new Date().toISOString();
+
+                // Check for achievements
+                const unlockedAchievements = checkAchievements(newUserData);
+                if (unlockedAchievements.length > 0) {
+                    setNewAchievements(unlockedAchievements);
+                }
+
                 setUserData(newUserData);
                 saveUserData(appData, newUserData);
             };
@@ -702,6 +834,13 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                 }
                 newUserData.wordHistory = updateWordHistory(newUserData, shuffledWords[currentWordIndex], correct);
                 newUserData.stats.lastPlayed = new Date().toISOString();
+
+                // Check for achievements
+                const unlockedAchievements = checkAchievements(newUserData);
+                if (unlockedAchievements.length > 0) {
+                    setNewAchievements(unlockedAchievements);
+                }
+
                 setUserData(newUserData);
                 saveUserData(appData, newUserData);
             };
@@ -727,6 +866,13 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                 }
                 newUserData.wordHistory = updateWordHistory(newUserData, shuffledWords[currentWordIndex], correct);
                 newUserData.stats.lastPlayed = new Date().toISOString();
+
+                // Check for achievements
+                const unlockedAchievements = checkAchievements(newUserData);
+                if (unlockedAchievements.length > 0) {
+                    setNewAchievements(unlockedAchievements);
+                }
+
                 setUserData(newUserData);
                 saveUserData(appData, newUserData);
             };
@@ -973,7 +1119,17 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                         React.createElement('div', { className: 'mb-6' },
                             React.createElement('div', { className: 'bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700' }, '🎙️ High-Quality Pre-Recorded Audio (Allison Voice)')
                         ),
+                        (userData.unlockedAchievements || []).length > 0 && React.createElement('div', { className: 'mb-6' },
+                            React.createElement('button', {
+                                onClick: () => setMode('dashboard'),
+                                className: 'w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2'
+                            },
+                                React.createElement('span', null, '🏆'),
+                                React.createElement('span', null, `Achievements (${(userData.unlockedAchievements || []).length}/${ACHIEVEMENTS.length})`)
+                            )
+                        ),
                         React.createElement('div', { className: 'space-y-4' },
+                            React.createElement('button', { onClick: () => setMode('dashboard'), className: 'w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, '📊 Progress Dashboard'),
                             React.createElement('button', { onClick: () => setMode('listen'), className: 'w-full bg-blue-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Listen & Spell'),
                             React.createElement('button', { onClick: () => setMode('unscramble'), className: 'w-full bg-green-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Unscramble'),
                             React.createElement('button', { onClick: () => setMode('multiple-choice'), className: 'w-full bg-yellow-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Multiple Choice'),
@@ -984,6 +1140,163 @@ sittringee`.split('\n').map(w => w.trim()).filter(w => w);
                             },
                                 React.createElement('span', null, '⚠️'),
                                 React.createElement('span', null, `Practice Mistakes (${missedWords.length})`)
+                            )
+                        ),
+                        newAchievements.length > 0 && React.createElement('div', {
+                            className: 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50',
+                            onClick: () => setNewAchievements([])
+                        },
+                            React.createElement('div', {
+                                className: 'bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4',
+                                onClick: (e) => e.stopPropagation()
+                            },
+                                React.createElement('div', { className: 'text-center mb-6' },
+                                    React.createElement('div', { className: 'text-6xl mb-4' }, '🎉'),
+                                    React.createElement('h2', { className: 'text-3xl font-bold text-purple-600 mb-2' }, 'Achievement Unlocked!')
+                                ),
+                                React.createElement('div', { className: 'space-y-4 mb-6' },
+                                    newAchievements.map((achievement, idx) =>
+                                        React.createElement('div', {
+                                            key: idx,
+                                            className: 'bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-xl'
+                                        },
+                                            React.createElement('div', { className: 'flex items-center gap-4' },
+                                                React.createElement('div', { className: 'text-5xl' }, achievement.icon),
+                                                React.createElement('div', { className: 'flex-1 text-left' },
+                                                    React.createElement('div', { className: 'font-bold text-xl text-purple-700' }, achievement.name),
+                                                    React.createElement('div', { className: 'text-sm text-gray-600' }, achievement.description)
+                                                )
+                                            )
+                                        )
+                                    )
+                                ),
+                                React.createElement('button', {
+                                    onClick: () => setNewAchievements([]),
+                                    className: 'w-full bg-purple-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition'
+                                }, 'Awesome!')
+                            )
+                        )
+                    )
+                );
+            }
+
+            // PROGRESS DASHBOARD
+            if (mode === 'dashboard') {
+                const masteryStats = getMasteryStats(userData, WORDS);
+                const totalWords = WORDS.length;
+                const accuracy = userData.stats.totalWordsAttempted > 0
+                    ? Math.round((userData.stats.totalCorrect / userData.stats.totalWordsAttempted) * 100)
+                    : 0;
+
+                // Get most difficult words (lowest accuracy, at least 2 attempts)
+                const difficultWords = Object.entries(userData.wordHistory)
+                    .filter(([_, history]) => history.attempts >= 2)
+                    .map(([word, history]) => ({
+                        word,
+                        accuracy: Math.round((history.correct / history.attempts) * 100)
+                    }))
+                    .sort((a, b) => a.accuracy - b.accuracy)
+                    .slice(0, 5);
+
+                return React.createElement('div', { className: 'min-h-screen bg-gradient-to-br from-cyan-400 via-blue-400 to-indigo-400 p-4' },
+                    React.createElement('div', { className: 'max-w-4xl mx-auto' },
+                        React.createElement('div', { className: 'bg-white rounded-3xl shadow-2xl p-8 mb-4' },
+                            React.createElement('div', { className: 'flex justify-between items-center mb-6' },
+                                React.createElement('h2', { className: 'text-3xl font-bold text-purple-600' }, '📊 Progress Dashboard'),
+                                React.createElement('button', {
+                                    onClick: () => setMode('home'),
+                                    className: 'bg-gray-200 hover:bg-gray-300 p-3 rounded-xl transition'
+                                }, React.createElement(Home, { size: 24 }))
+                            ),
+                            React.createElement('div', { className: 'grid grid-cols-2 md:grid-cols-4 gap-4 mb-6' },
+                                React.createElement('div', { className: 'bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-4 text-center' },
+                                    React.createElement('div', { className: 'text-4xl font-bold text-blue-700' }, userData.stats.totalWordsAttempted),
+                                    React.createElement('div', { className: 'text-sm text-gray-700 font-semibold' }, 'Total Attempted')
+                                ),
+                                React.createElement('div', { className: 'bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-4 text-center' },
+                                    React.createElement('div', { className: 'text-4xl font-bold text-green-700' }, `${accuracy}%`),
+                                    React.createElement('div', { className: 'text-sm text-gray-700 font-semibold' }, 'Overall Accuracy')
+                                ),
+                                React.createElement('div', { className: 'bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-4 text-center' },
+                                    React.createElement('div', { className: 'text-4xl font-bold text-purple-700' }, userData.stats.bestStreak),
+                                    React.createElement('div', { className: 'text-sm text-gray-700 font-semibold' }, 'Best Streak')
+                                ),
+                                React.createElement('div', { className: 'bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl p-4 text-center' },
+                                    React.createElement('div', { className: 'text-4xl font-bold text-orange-700' }, userData.stats.sessionCount),
+                                    React.createElement('div', { className: 'text-sm text-gray-700 font-semibold' }, 'Days Practiced')
+                                )
+                            ),
+                            React.createElement('div', { className: 'mb-6' },
+                                React.createElement('h3', { className: 'text-xl font-bold text-gray-800 mb-3' }, 'Mastery Progress'),
+                                React.createElement('div', { className: 'space-y-3' },
+                                    React.createElement('div', null,
+                                        React.createElement('div', { className: 'flex justify-between items-center mb-1' },
+                                            React.createElement('span', { className: 'text-sm font-semibold text-gray-700' }, `Mastered: ${masteryStats.mastered}/${totalWords}`),
+                                            React.createElement('span', { className: 'text-sm text-gray-600' }, `${Math.round((masteryStats.mastered / totalWords) * 100)}%`)
+                                        ),
+                                        React.createElement('div', { className: 'w-full bg-gray-200 rounded-full h-4' },
+                                            React.createElement('div', {
+                                                className: 'bg-gradient-to-r from-green-500 to-emerald-500 h-4 rounded-full transition-all',
+                                                style: { width: `${(masteryStats.mastered / totalWords) * 100}%` }
+                                            })
+                                        )
+                                    ),
+                                    React.createElement('div', null,
+                                        React.createElement('div', { className: 'flex justify-between items-center mb-1' },
+                                            React.createElement('span', { className: 'text-sm font-semibold text-gray-700' }, `Practiced: ${masteryStats.practiced}/${totalWords}`),
+                                            React.createElement('span', { className: 'text-sm text-gray-600' }, `${Math.round((masteryStats.practiced / totalWords) * 100)}%`)
+                                        ),
+                                        React.createElement('div', { className: 'w-full bg-gray-200 rounded-full h-4' },
+                                            React.createElement('div', {
+                                                className: 'bg-gradient-to-r from-blue-500 to-cyan-500 h-4 rounded-full transition-all',
+                                                style: { width: `${(masteryStats.practiced / totalWords) * 100}%` }
+                                            })
+                                        )
+                                    ),
+                                    React.createElement('div', null,
+                                        React.createElement('div', { className: 'flex justify-between items-center mb-1' },
+                                            React.createElement('span', { className: 'text-sm font-semibold text-gray-700' }, `Needs Practice: ${masteryStats.needsPractice}`),
+                                            React.createElement('span', { className: 'text-sm text-gray-600' }, `${Math.round((masteryStats.needsPractice / totalWords) * 100)}%`)
+                                        ),
+                                        React.createElement('div', { className: 'w-full bg-gray-200 rounded-full h-4' },
+                                            React.createElement('div', {
+                                                className: 'bg-gradient-to-r from-orange-500 to-red-500 h-4 rounded-full transition-all',
+                                                style: { width: `${(masteryStats.needsPractice / totalWords) * 100}%` }
+                                            })
+                                        )
+                                    )
+                                )
+                            ),
+                            difficultWords.length > 0 && React.createElement('div', { className: 'mb-6' },
+                                React.createElement('h3', { className: 'text-xl font-bold text-gray-800 mb-3' }, 'Most Challenging Words'),
+                                React.createElement('div', { className: 'space-y-2' },
+                                    difficultWords.map(({ word, accuracy }) =>
+                                        React.createElement('div', {
+                                            key: word,
+                                            className: 'flex justify-between items-center bg-red-50 p-3 rounded-lg'
+                                        },
+                                            React.createElement('span', { className: 'font-semibold text-gray-800' }, word),
+                                            React.createElement('span', { className: `font-bold ${accuracy < 50 ? 'text-red-600' : 'text-orange-600'}` }, `${accuracy}%`)
+                                        )
+                                    )
+                                )
+                            ),
+                            React.createElement('div', null,
+                                React.createElement('h3', { className: 'text-xl font-bold text-gray-800 mb-3' }, '🏆 Achievements'),
+                                React.createElement('div', { className: 'grid grid-cols-2 md:grid-cols-3 gap-3' },
+                                    ACHIEVEMENTS.map(achievement => {
+                                        const unlocked = (userData.unlockedAchievements || []).includes(achievement.id);
+                                        return React.createElement('div', {
+                                            key: achievement.id,
+                                            className: `p-4 rounded-xl text-center transition ${unlocked ? 'bg-gradient-to-br from-purple-100 to-pink-100' : 'bg-gray-100 opacity-50'}`
+                                        },
+                                            React.createElement('div', { className: 'text-4xl mb-2' }, achievement.icon),
+                                            React.createElement('div', { className: 'font-bold text-sm text-gray-800' }, achievement.name),
+                                            React.createElement('div', { className: 'text-xs text-gray-600' }, achievement.description),
+                                            unlocked && React.createElement('div', { className: 'text-xs text-purple-600 font-bold mt-1' }, '✓ Unlocked')
+                                        );
+                                    })
+                                )
                             )
                         )
                     )

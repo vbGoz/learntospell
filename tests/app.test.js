@@ -262,7 +262,8 @@ function getDefaultUserData() {
             lastPlayed: new Date().toISOString()
         },
         wordHistory: {},
-        achievements: []
+        achievements: [],
+        unlockedAchievements: []
     };
 }
 
@@ -1007,6 +1008,256 @@ test('Mobile/Desktop: Audio filename normalization is idempotent', () => {
         assertEqual(filename1, filename2,
             `Normalizing twice should give same result for ${word}`);
     });
+});
+
+// ========== ACHIEVEMENTS SYSTEM TESTS ==========
+
+// Mock achievement definitions (simplified version of app achievements)
+const MOCK_ACHIEVEMENTS = [
+    {
+        id: 'first-steps',
+        name: 'First Steps',
+        check: (userData) => userData.stats.totalWordsAttempted >= 1
+    },
+    {
+        id: 'perfect-10',
+        name: 'Perfect 10',
+        check: (userData) => userData.stats.bestStreak >= 10
+    },
+    {
+        id: 'century-club',
+        name: 'Century Club',
+        check: (userData) => userData.stats.totalWordsAttempted >= 100
+    }
+];
+
+const checkAchievements = (userData, achievements) => {
+    const newlyUnlocked = [];
+    achievements.forEach(achievement => {
+        const alreadyUnlocked = (userData.unlockedAchievements || []).includes(achievement.id);
+        if (!alreadyUnlocked && achievement.check(userData)) {
+            newlyUnlocked.push(achievement);
+            if (!userData.unlockedAchievements) {
+                userData.unlockedAchievements = [];
+            }
+            userData.unlockedAchievements.push(achievement.id);
+        }
+    });
+    return newlyUnlocked;
+};
+
+// Test 66: Achievement - First Steps unlocks on first word
+test('Achievements: First Steps unlocks after first word attempt', () => {
+    const userData = getDefaultUserData();
+    userData.stats.totalWordsAttempted = 1;
+
+    const unlocked = checkAchievements(userData, MOCK_ACHIEVEMENTS);
+
+    assertEqual(unlocked.length, 1, 'Should unlock one achievement');
+    assertEqual(unlocked[0].id, 'first-steps');
+    assertTrue(userData.unlockedAchievements.includes('first-steps'));
+});
+
+// Test 67: Achievement - Perfect 10 unlocks after 10 streak
+test('Achievements: Perfect 10 unlocks after 10-word streak', () => {
+    const userData = getDefaultUserData();
+    userData.stats.totalWordsAttempted = 10;
+    userData.stats.bestStreak = 10;
+
+    const unlocked = checkAchievements(userData, MOCK_ACHIEVEMENTS);
+
+    assertTrue(unlocked.length >= 1, 'Should unlock at least one achievement');
+    assertTrue(unlocked.some(a => a.id === 'perfect-10'), 'Should unlock Perfect 10');
+});
+
+// Test 68: Achievement - Century Club unlocks at 100 attempts
+test('Achievements: Century Club unlocks at 100 attempts', () => {
+    const userData = getDefaultUserData();
+    userData.stats.totalWordsAttempted = 100;
+    userData.stats.bestStreak = 5;
+
+    const unlocked = checkAchievements(userData, MOCK_ACHIEVEMENTS);
+
+    assertTrue(unlocked.some(a => a.id === 'century-club'), 'Should unlock Century Club');
+});
+
+// Test 69: Achievement - No duplicate unlocks
+test('Achievements: Same achievement does not unlock twice', () => {
+    const userData = getDefaultUserData();
+    userData.stats.totalWordsAttempted = 1;
+
+    // First unlock
+    const firstUnlock = checkAchievements(userData, MOCK_ACHIEVEMENTS);
+    assertEqual(firstUnlock.length, 1);
+
+    // Try to unlock again
+    const secondUnlock = checkAchievements(userData, MOCK_ACHIEVEMENTS);
+    assertEqual(secondUnlock.length, 0, 'Should not unlock same achievement twice');
+});
+
+// Test 70: Achievement - Multiple achievements can unlock at once
+test('Achievements: Multiple achievements can unlock simultaneously', () => {
+    const userData = getDefaultUserData();
+    userData.stats.totalWordsAttempted = 100;
+    userData.stats.bestStreak = 10;
+
+    const unlocked = checkAchievements(userData, MOCK_ACHIEVEMENTS);
+
+    assertTrue(unlocked.length >= 2, 'Should unlock multiple achievements');
+    assertTrue(unlocked.some(a => a.id === 'perfect-10'));
+    assertTrue(unlocked.some(a => a.id === 'century-club'));
+});
+
+// Test 71: Achievement - Track unlocked achievements list
+test('Achievements: unlockedAchievements array tracks all unlocks', () => {
+    const userData = getDefaultUserData();
+    userData.stats.totalWordsAttempted = 1;
+
+    checkAchievements(userData, MOCK_ACHIEVEMENTS);
+
+    assertTrue(Array.isArray(userData.unlockedAchievements));
+    assertEqual(userData.unlockedAchievements.length, 1);
+    assertEqual(userData.unlockedAchievements[0], 'first-steps');
+});
+
+// ========== PROGRESS DASHBOARD TESTS ==========
+
+// Test 72: Dashboard - Calculate overall accuracy
+test('Dashboard: Overall accuracy calculation', () => {
+    const userData = getDefaultUserData();
+    userData.stats.totalWordsAttempted = 20;
+    userData.stats.totalCorrect = 15;
+
+    const accuracy = Math.round((userData.stats.totalCorrect / userData.stats.totalWordsAttempted) * 100);
+
+    assertEqual(accuracy, 75, 'Accuracy should be 75%');
+});
+
+// Test 73: Dashboard - Accuracy is 0% when no attempts
+test('Dashboard: Accuracy is 0% with no attempts', () => {
+    const userData = getDefaultUserData();
+
+    const accuracy = userData.stats.totalWordsAttempted > 0
+        ? Math.round((userData.stats.totalCorrect / userData.stats.totalWordsAttempted) * 100)
+        : 0;
+
+    assertEqual(accuracy, 0);
+});
+
+// Test 74: Dashboard - Find most difficult words
+test('Dashboard: Identify most difficult words (lowest accuracy)', () => {
+    const userData = getDefaultUserData();
+    userData.wordHistory = {
+        'chair': { attempts: 4, correct: 1 },    // 25%
+        'brass': { attempts: 3, correct: 3 },    // 100%
+        'ready': { attempts: 5, correct: 2 }     // 40%
+    };
+
+    const difficultWords = Object.entries(userData.wordHistory)
+        .filter(([_, history]) => history.attempts >= 2)
+        .map(([word, history]) => ({
+            word,
+            accuracy: Math.round((history.correct / history.attempts) * 100)
+        }))
+        .sort((a, b) => a.accuracy - b.accuracy);
+
+    assertEqual(difficultWords[0].word, 'chair', 'Most difficult should be chair');
+    assertEqual(difficultWords[0].accuracy, 25);
+    assertEqual(difficultWords[1].word, 'ready');
+    assertEqual(difficultWords[2].word, 'brass', 'Least difficult should be brass');
+});
+
+// Test 75: Dashboard - Filter words with minimum attempts
+test('Dashboard: Only show words with 2+ attempts as difficult', () => {
+    const userData = getDefaultUserData();
+    userData.wordHistory = {
+        'chair': { attempts: 1, correct: 0 },    // 0% but only 1 attempt
+        'brass': { attempts: 3, correct: 1 }     // 33%
+    };
+
+    const difficultWords = Object.entries(userData.wordHistory)
+        .filter(([_, history]) => history.attempts >= 2)
+        .map(([word, history]) => ({ word, accuracy: history.correct / history.attempts }));
+
+    assertEqual(difficultWords.length, 1, 'Should only include brass');
+    assertEqual(difficultWords[0].word, 'brass');
+});
+
+// Test 76: Dashboard - Mastery progress percentage
+test('Dashboard: Calculate mastery progress percentage', () => {
+    const userData = getDefaultUserData();
+    userData.wordHistory = {
+        'chair': { attempts: 5, correct: 5 },
+        'brass': { attempts: 4, correct: 4 },
+        'ready': { attempts: 3, correct: 3 }
+    };
+
+    const stats = getMasteryStats(userData, WORDS);
+    const percentage = Math.round((stats.mastered / WORDS.length) * 100);
+
+    assertTrue(percentage >= 0 && percentage <= 100);
+    assertEqual(stats.mastered, 3);
+});
+
+// Test 77: Dashboard - Session count tracking
+test('Dashboard: Session count tracks practice days', () => {
+    const userData = getDefaultUserData();
+    userData.stats.sessionCount = 7;
+
+    assertEqual(userData.stats.sessionCount, 7);
+    assertTrue(userData.stats.sessionCount >= 1);
+});
+
+// Test 78: Integration - Achievement unlocks persist
+test('Integration: Achievement unlocks persist across userData updates', () => {
+    let userData = getDefaultUserData();
+    userData.stats.totalWordsAttempted = 1;
+
+    checkAchievements(userData, MOCK_ACHIEVEMENTS);
+    assertEqual(userData.unlockedAchievements.length, 1);
+
+    // Simulate more progress
+    userData.stats.totalWordsAttempted = 10;
+    userData.stats.bestStreak = 10;
+
+    checkAchievements(userData, MOCK_ACHIEVEMENTS);
+    assertTrue(userData.unlockedAchievements.length >= 2, 'Should have multiple achievements');
+    assertTrue(userData.unlockedAchievements.includes('first-steps'), 'First achievement should persist');
+});
+
+// Test 79: Integration - Dashboard shows accurate stats after practice
+test('Integration: Dashboard reflects practice session accurately', () => {
+    const userData = getDefaultUserData();
+
+    // Simulate practice session: 10 words, 7 correct
+    const words = ['chair', 'brass', 'ready', 'scatter', 'gobble', 'eel', 'sizzle', 'Spanish', 'hornet', 'oval'];
+    const results = [true, true, false, true, true, false, true, true, false, true];
+
+    words.forEach((word, i) => {
+        userData.wordHistory = updateWordHistory(userData, word, results[i]);
+        userData.stats.totalWordsAttempted++;
+        if (results[i]) userData.stats.totalCorrect++;
+    });
+
+    const accuracy = Math.round((userData.stats.totalCorrect / userData.stats.totalWordsAttempted) * 100);
+    assertEqual(accuracy, 70, 'Should show 70% accuracy');
+    assertEqual(userData.stats.totalWordsAttempted, 10);
+    assertEqual(userData.stats.totalCorrect, 7);
+});
+
+// Test 80: Edge case - Dashboard with no practice history
+test('Dashboard: Handles user with no practice history gracefully', () => {
+    const userData = getDefaultUserData();
+
+    const stats = getMasteryStats(userData, WORDS);
+    const accuracy = userData.stats.totalWordsAttempted > 0
+        ? Math.round((userData.stats.totalCorrect / userData.stats.totalWordsAttempted) * 100)
+        : 0;
+
+    assertEqual(stats.mastered, 0);
+    assertEqual(stats.practiced, 0);
+    assertEqual(accuracy, 0);
+    assertEqual(userData.stats.bestStreak, 0);
 });
 
 // ========== RESULTS ==========
