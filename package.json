@@ -1,0 +1,11 @@
+{
+  "name": "word-club-spelling",
+  "version": "1.0.0",
+  "description": "Spelling practice app unit tests",
+  "scripts": {
+    "test": "node tests/app.test.js"
+  },
+  "keywords": ["spelling", "education"],
+  "author": "",
+  "license": "MIT"
+}
