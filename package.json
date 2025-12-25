@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "Spelling practice app with comprehensive test suite",
   "scripts": {
-    "test": "npm run test:unit && npm run test:integration",
+    "test": "npm run test:all",
     "test:unit": "node tests/app.test.js",
     "test:integration": "node tests/integration.test.js",
-    "test:all": "npm run test:unit && npm run test:integration"
+    "test:react-lint": "node tests/react-lint.test.js",
+    "test:jest": "jest",
+    "test:jest:watch": "jest --watch",
+    "test:jest:coverage": "jest --coverage",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:react-lint && npm run test:jest",
+    "coverage": "node tests/coverage-analysis.js"
   },
-  "keywords": ["spelling", "education", "pwa"],
+  "keywords": ["spelling", "education", "pwa", "react", "testing"],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {}
 }
