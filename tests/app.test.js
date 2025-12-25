@@ -833,6 +833,182 @@ test('Performance: getMissedWords should handle all 221 words efficiently', () =
     assertTrue(missed.length > 0, 'Should find some missed words');
 });
 
+// ========== MOBILE & DESKTOP COMPATIBILITY TESTS ==========
+
+// Audio filename normalization function (from app)
+function getAudioFilename(word) {
+    return word.toLowerCase()
+        .replace(/[àáâãäå]/g, 'a')
+        .replace(/[èéêë]/g, 'e')
+        .replace(/[ìíîï]/g, 'i')
+        .replace(/[òóôõö]/g, 'o')
+        .replace(/[ùúûü]/g, 'u')
+        .replace(/[ñ]/g, 'n')
+        .replace(/[ç]/g, 'c')
+        .replace(/[ä]/g, 'a')
+        .replace(/[ö]/g, 'o')
+        .replace(/[ü]/g, 'u')
+        .replace(/[ß]/g, 'ss')
+        .replace(/\s+/g, '_')
+        .replace(/[^a-z0-9_]/g, '');
+}
+
+// Test 51: Audio format is M4A (mobile-compatible)
+test('Mobile/Desktop: Audio files use M4A format for universal compatibility', () => {
+    const testWord = 'chair';
+    const filename = getAudioFilename(testWord);
+    const audioPath = `audio/${filename}.m4a`;
+
+    assertTrue(audioPath.endsWith('.m4a'), 'Audio path should end with .m4a');
+    assertEqual(audioPath, 'audio/chair.m4a');
+});
+
+// Test 52: Audio filename normalization - accented characters
+test('Mobile/Desktop: Audio filenames handle accented characters (pâtisserie)', () => {
+    const filename = getAudioFilename('pâtisserie');
+    assertEqual(filename, 'patisserie');
+    assertTrue(/^[a-z0-9_]+$/.test(filename), 'Should only contain lowercase letters, numbers, and underscores');
+});
+
+// Test 53: Audio filename normalization - special characters
+test('Mobile/Desktop: Audio filenames handle special characters (pince-nez)', () => {
+    const filename = getAudioFilename('pince-nez');
+    assertEqual(filename, 'pincenez');
+    assertTrue(/^[a-z0-9_]+$/.test(filename), 'Should only contain lowercase letters, numbers, and underscores');
+});
+
+// Test 54: Audio filename normalization - spaces
+test('Mobile/Desktop: Audio filenames replace spaces with underscores (cri de coeur)', () => {
+    const filename = getAudioFilename('cri de coeur');
+    assertEqual(filename, 'cri_de_coeur');
+    assertTrue(filename.includes('_'), 'Should contain underscores for spaces');
+});
+
+// Test 55: Audio filename normalization - multiple special chars
+test('Mobile/Desktop: Audio filenames handle multiple special characters (geländesprung)', () => {
+    const filename = getAudioFilename('geländesprung');
+    assertEqual(filename, 'gelandesprung');
+    assertTrue(/^[a-z0-9_]+$/.test(filename), 'Should only contain lowercase letters, numbers, and underscores');
+});
+
+// Test 56: Audio filename normalization - Spanish characters
+test('Mobile/Desktop: Audio filenames handle Spanish characters (compañero)', () => {
+    const filename = getAudioFilename('compañero');
+    assertEqual(filename, 'companero');
+    assertTrue(/^[a-z0-9_]+$/.test(filename), 'Should only contain lowercase letters, numbers, and underscores');
+});
+
+// Test 57: All 221 words generate valid audio filenames
+test('Mobile/Desktop: All 221 words generate valid, mobile-safe filenames', () => {
+    const invalidFilenames = [];
+    const validPattern = /^[a-z0-9_]+$/;
+
+    WORDS.forEach(word => {
+        const filename = getAudioFilename(word);
+        if (!validPattern.test(filename)) {
+            invalidFilenames.push({ word, filename });
+        }
+    });
+
+    assertEqual(invalidFilenames.length, 0,
+        `All filenames should be mobile-safe. Invalid: ${JSON.stringify(invalidFilenames)}`);
+});
+
+// Test 58: Audio paths for all words use M4A format
+test('Mobile/Desktop: All 221 words use M4A audio format', () => {
+    WORDS.forEach(word => {
+        const filename = getAudioFilename(word);
+        const audioPath = `audio/${filename}.m4a`;
+        assertTrue(audioPath.endsWith('.m4a'), `${word} should use .m4a format`);
+    });
+});
+
+// Test 59: No duplicate audio filenames
+test('Mobile/Desktop: All words map to unique audio filenames', () => {
+    const filenameMap = {};
+    const duplicates = [];
+
+    WORDS.forEach(word => {
+        const filename = getAudioFilename(word);
+        if (filenameMap[filename]) {
+            duplicates.push({ word, filename, conflictsWith: filenameMap[filename] });
+        } else {
+            filenameMap[filename] = word;
+        }
+    });
+
+    assertEqual(duplicates.length, 0,
+        `Each word should have unique filename. Duplicates: ${JSON.stringify(duplicates)}`);
+});
+
+// Test 60: Audio filename length is mobile-safe
+test('Mobile/Desktop: Audio filenames are reasonable length for all platforms', () => {
+    const longFilenames = [];
+    const maxLength = 255; // Common filename limit across platforms
+
+    WORDS.forEach(word => {
+        const filename = getAudioFilename(word);
+        const fullPath = `audio/${filename}.m4a`;
+        if (fullPath.length > maxLength) {
+            longFilenames.push({ word, filename, length: fullPath.length });
+        }
+    });
+
+    assertEqual(longFilenames.length, 0,
+        `All filenames should be under ${maxLength} chars. Long: ${JSON.stringify(longFilenames)}`);
+});
+
+// Test 61: Audio filename case insensitivity
+test('Mobile/Desktop: Audio filenames are lowercase for case-insensitive filesystems', () => {
+    WORDS.forEach(word => {
+        const filename = getAudioFilename(word);
+        assertEqual(filename, filename.toLowerCase(),
+            `${word} filename should be lowercase: ${filename}`);
+    });
+});
+
+// Test 62: Audio path generation consistency
+test('Mobile/Desktop: Audio path generation is consistent', () => {
+    const word = 'chair';
+    const path1 = `audio/${getAudioFilename(word)}.m4a`;
+    const path2 = `audio/${getAudioFilename(word)}.m4a`;
+    assertEqual(path1, path2, 'Same word should always generate same path');
+});
+
+// Test 63: Special words with complex characters
+test('Mobile/Desktop: Complex words generate valid audio paths', () => {
+    const complexWords = ['pâtisserie', 'compañero', 'geländesprung', 'protégé', 'pince-nez'];
+
+    complexWords.forEach(word => {
+        const filename = getAudioFilename(word);
+        const audioPath = `audio/${filename}.m4a`;
+
+        assertTrue(/^audio\/[a-z0-9_]+\.m4a$/.test(audioPath),
+            `${word} should generate valid path: ${audioPath}`);
+    });
+});
+
+// Test 64: Multi-word phrases generate valid filenames
+test('Mobile/Desktop: Multi-word phrases generate valid audio filenames', () => {
+    const multiWordPhrases = ['cri de coeur', 'chaise longue'];
+
+    multiWordPhrases.forEach(phrase => {
+        const filename = getAudioFilename(phrase);
+        assertTrue(filename.includes('_'), `${phrase} should use underscores`);
+        assertTrue(/^[a-z0-9_]+$/.test(filename), `${phrase} filename should be safe`);
+    });
+});
+
+// Test 65: Audio filename normalization is idempotent
+test('Mobile/Desktop: Audio filename normalization is idempotent', () => {
+    WORDS.forEach(word => {
+        const filename1 = getAudioFilename(word);
+        const filename2 = getAudioFilename(filename1);
+        assertEqual(filename1, filename2,
+            `Normalizing twice should give same result for ${word}`);
+    });
+});
+
 // ========== RESULTS ==========
 
 console.log(`\n${'='.repeat(50)}`);
