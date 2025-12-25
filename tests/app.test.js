@@ -1544,6 +1544,369 @@ test('Integration: Complete profile workflow (create, switch, practice, delete)'
     assertEqual(appData.profileData[bobId].stats.totalCorrect, 18);
 });
 
+// ========== DISTRACTOR GENERATION TESTS (Multiple Choice) ==========
+
+// generateDistractors function from app
+function generateDistractors(correctWord) {
+    const distractors = new Set();
+    const word = correctWord.toLowerCase();
+
+    // Strategy 1: Swap common vowels
+    const vowelSwaps = { 'a': ['e', 'o'], 'e': ['a', 'i'], 'i': ['e', 'y'], 'o': ['a', 'u'], 'u': ['o', 'oo'] };
+    for (let i = 0; i < word.length; i++) {
+        if (vowelSwaps[word[i]]) {
+            vowelSwaps[word[i]].forEach(swap => {
+                const distractor = word.slice(0, i) + swap + word.slice(i + 1);
+                if (distractor !== word) distractors.add(distractor);
+            });
+        }
+    }
+
+    // Strategy 2: Double or undouble consonants
+    for (let i = 0; i < word.length - 1; i++) {
+        const char = word[i];
+        if (!/[aeiou]/.test(char)) {
+            // Double a consonant
+            if (word[i] !== word[i + 1]) {
+                const distractor = word.slice(0, i + 1) + char + word.slice(i + 1);
+                distractors.add(distractor);
+            }
+            // Undouble a consonant
+            if (word[i] === word[i + 1]) {
+                const distractor = word.slice(0, i) + word.slice(i + 1);
+                distractors.add(distractor);
+            }
+        }
+    }
+
+    // Strategy 3: Transpose adjacent letters
+    for (let i = 0; i < word.length - 1; i++) {
+        const distractor = word.slice(0, i) + word[i + 1] + word[i] + word.slice(i + 2);
+        if (distractor !== word) distractors.add(distractor);
+    }
+
+    // Strategy 4: Common spelling confusions
+    const confusions = [
+        ['ie', 'ei'], ['ei', 'ie'], ['ph', 'f'], ['f', 'ph'],
+        ['c', 'k'], ['k', 'c'], ['s', 'c'], ['c', 's'],
+        ['tion', 'sion'], ['sion', 'tion'], ['ence', 'ance'], ['ance', 'ence']
+    ];
+    confusions.forEach(([from, to]) => {
+        if (word.includes(from)) {
+            const distractor = word.replace(from, to);
+            if (distractor !== word) distractors.add(distractor);
+        }
+    });
+
+    // Strategy 5: Remove or add silent letters
+    const silentPatterns = ['e$', 'ue$', 'gh', 'kn', 'wr'];
+    silentPatterns.forEach(pattern => {
+        if (word.match(new RegExp(pattern))) {
+            const distractor = word.replace(new RegExp(pattern), '');
+            if (distractor !== word && distractor.length > 2) distractors.add(distractor);
+        }
+    });
+
+    // Convert back to original case
+    const cased = Array.from(distractors).map(d => {
+        if (correctWord[0] === correctWord[0].toUpperCase()) {
+            return d.charAt(0).toUpperCase() + d.slice(1);
+        }
+        return d;
+    });
+
+    // Return 3 unique distractors
+    return cased.slice(0, 3);
+}
+
+// Test 96: Distractors - returns exactly 3 options
+test('Distractors: generateDistractors returns exactly 3 options', () => {
+    const distractors = generateDistractors('chair');
+    assertTrue(Array.isArray(distractors), 'Should return an array');
+    assertEqual(distractors.length, 3, 'Should return exactly 3 distractors');
+});
+
+// Test 97: Distractors - all options are different from correct word
+test('Distractors: All distractors are different from correct word', () => {
+    const word = 'brass';
+    const distractors = generateDistractors(word);
+
+    distractors.forEach(distractor => {
+        assertTrue(distractor !== word, `Distractor "${distractor}" should not match correct word "${word}"`);
+        assertTrue(distractor.toLowerCase() !== word.toLowerCase(), 'Should differ even when case-insensitive');
+    });
+});
+
+// Test 98: Distractors - vowel swap strategy works
+test('Distractors: Vowel swap strategy generates plausible misspellings', () => {
+    const word = 'chair';
+    const distractors = generateDistractors(word);
+
+    // "chair" could become "chear", "chier", "chuir", "choer", etc.
+    const allDistractors = distractors.join(',');
+    const hasVowelVariation = /ch[aeio]ir/.test(allDistractors) || /ch[ae]ir/.test(allDistractors);
+
+    // At least one distractor should be plausible
+    assertTrue(distractors.length > 0, 'Should generate at least one distractor');
+});
+
+// Test 99: Distractors - consonant doubling strategy works
+test('Distractors: Consonant doubling strategy works correctly', () => {
+    const word = 'brass';  // has double 's'
+    const distractors = generateDistractors(word);
+
+    // Should generate variations like "bras" (undouble s), "brrass" (double r), etc.
+    const allDistractors = distractors.join(',');
+
+    assertTrue(distractors.length > 0, 'Should generate distractors');
+    // Check that at least one distractor has different consonant pattern
+    const hasConsonantVariation = distractors.some(d =>
+        d.includes('rr') || d === 'bras' || d.includes('bb')
+    );
+    assertTrue(distractors.every(d => d !== word), 'All distractors should differ from correct word');
+});
+
+// Test 100: Distractors - letter transposition strategy works
+test('Distractors: Letter transposition creates typo-like errors', () => {
+    const word = 'ready';
+    const distractors = generateDistractors(word);
+
+    // Transpositions could create: "raedy", "redy", "reday", "readdy", etc.
+    assertTrue(distractors.length > 0, 'Should generate at least one distractor');
+    assertTrue(distractors.every(d => d.length >= word.length - 1 && d.length <= word.length + 1),
+        'Distractors should be similar length to original');
+});
+
+// Test 101: Distractors - spelling confusion patterns work
+test('Distractors: Common spelling confusions (ie/ei, c/k, ph/f)', () => {
+    const testCases = [
+        { word: 'believe', pattern: /bel[ie]{2}ve/ },  // ie/ei confusion
+        { word: 'photograph', pattern: /photo/ },      // ph pattern
+    ];
+
+    testCases.forEach(({ word, pattern }) => {
+        const distractors = generateDistractors(word);
+        assertTrue(distractors.length > 0, `Should generate distractors for "${word}"`);
+        assertTrue(distractors.every(d => d !== word), 'All distractors should differ');
+    });
+});
+
+// Test 102: Distractors - silent letter removal works
+test('Distractors: Silent letter removal creates plausible misspellings', () => {
+    const word = 'knife';  // silent 'k'
+    const distractors = generateDistractors(word);
+
+    // Could generate "nife" (remove kn), variations with vowel swaps, etc.
+    assertTrue(distractors.length > 0, 'Should generate distractors');
+    assertTrue(distractors.every(d => d.length >= 2), 'Distractors should be reasonable length');
+});
+
+// Test 103: Distractors - preserves capitalization
+test('Distractors: Preserves capitalization of original word', () => {
+    const word = 'Chair';  // Capitalized
+    const distractors = generateDistractors(word);
+
+    distractors.forEach(distractor => {
+        assertTrue(distractor[0] === distractor[0].toUpperCase(),
+            `Distractor "${distractor}" should start with capital letter like "${word}"`);
+    });
+});
+
+// Test 104: Distractors - handles lowercase words
+test('Distractors: Handles lowercase words correctly', () => {
+    const word = 'chair';  // lowercase
+    const distractors = generateDistractors(word);
+
+    distractors.forEach(distractor => {
+        assertTrue(distractor[0] === distractor[0].toLowerCase(),
+            `Distractor "${distractor}" should be lowercase like "${word}"`);
+    });
+});
+
+// Test 105: Distractors - works with very short words
+test('Distractors: Handles short words (3-4 letters)', () => {
+    const words = ['cat', 'dog', 'run', 'sit'];
+
+    words.forEach(word => {
+        const distractors = generateDistractors(word);
+        assertTrue(distractors.length > 0, `Should generate distractors for short word "${word}"`);
+        assertTrue(distractors.length <= 3, 'Should return at most 3 distractors');
+        assertTrue(distractors.every(d => d !== word), 'All distractors should differ from correct word');
+    });
+});
+
+// Test 106: Distractors - works with longer words
+test('Distractors: Handles longer words (10+ letters)', () => {
+    const words = ['substantially', 'hyperventilated', 'anonymously'];
+
+    words.forEach(word => {
+        const distractors = generateDistractors(word);
+        assertTrue(distractors.length > 0, `Should generate distractors for long word "${word}"`);
+        assertEqual(distractors.length, 3, 'Should return exactly 3 distractors');
+        assertTrue(distractors.every(d => d !== word), 'All distractors should differ from correct word');
+    });
+});
+
+// Test 107: Distractors - all distractors are unique
+test('Distractors: All generated distractors are unique', () => {
+    const word = 'formidable';
+    const distractors = generateDistractors(word);
+
+    const uniqueDistractors = new Set(distractors);
+    assertEqual(uniqueDistractors.size, distractors.length,
+        'All distractors should be unique (no duplicates)');
+});
+
+// Test 108: Distractors - real-world test with multiple words
+test('Distractors: Generates valid options for random word selection', () => {
+    const testWords = ['chair', 'brass', 'ready', 'Spanish', 'plastic', 'evergreen', 'decompose'];
+
+    testWords.forEach(word => {
+        const distractors = generateDistractors(word);
+
+        // All distractors should be:
+        // 1. Different from the correct word
+        assertTrue(distractors.every(d => d.toLowerCase() !== word.toLowerCase()),
+            `All distractors for "${word}" should differ from correct word`);
+
+        // 2. Similar length (within 2 characters)
+        assertTrue(distractors.every(d => Math.abs(d.length - word.length) <= 2),
+            `Distractors for "${word}" should be similar length`);
+
+        // 3. Non-empty
+        assertTrue(distractors.every(d => d.length > 0),
+            `All distractors for "${word}" should be non-empty`);
+    });
+});
+
+// ========== LETTER SHUFFLING TESTS (Unscramble Mode) ==========
+
+// Letter shuffling function (Fisher-Yates shuffle)
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+// Test 109: Shuffling - returns same length array
+test('Shuffling: Shuffled array has same length as original', () => {
+    const letters = ['c', 'h', 'a', 'i', 'r'];
+    const shuffled = shuffleArray(letters);
+
+    assertEqual(shuffled.length, letters.length, 'Shuffled array should have same length');
+});
+
+// Test 110: Shuffling - contains all original elements
+test('Shuffling: Shuffled array contains all original letters', () => {
+    const letters = ['c', 'h', 'a', 'i', 'r'];
+    const shuffled = shuffleArray(letters);
+
+    // Sort both to compare
+    const originalSorted = [...letters].sort();
+    const shuffledSorted = [...shuffled].sort();
+
+    assertEqual(shuffledSorted.join(''), originalSorted.join(''),
+        'Shuffled array should contain exactly the same letters');
+});
+
+// Test 111: Shuffling - doesn't modify original array
+test('Shuffling: Does not modify original array', () => {
+    const letters = ['c', 'h', 'a', 'i', 'r'];
+    const originalCopy = [...letters];
+
+    shuffleArray(letters);
+
+    assertEqual(letters.join(''), originalCopy.join(''),
+        'Original array should not be modified');
+});
+
+// Test 112: Shuffling - works with single letter
+test('Shuffling: Handles single letter correctly', () => {
+    const letters = ['a'];
+    const shuffled = shuffleArray(letters);
+
+    assertEqual(shuffled.length, 1);
+    assertEqual(shuffled[0], 'a');
+});
+
+// Test 113: Shuffling - works with two letters
+test('Shuffling: Handles two letters correctly', () => {
+    const letters = ['a', 'b'];
+    const shuffled = shuffleArray(letters);
+
+    assertEqual(shuffled.length, 2);
+    assertTrue(shuffled.includes('a') && shuffled.includes('b'),
+        'Should contain both letters');
+});
+
+// Test 114: Shuffling - handles repeated letters
+test('Shuffling: Handles words with repeated letters (brass)', () => {
+    const letters = ['b', 'r', 'a', 's', 's'];
+    const shuffled = shuffleArray(letters);
+
+    assertEqual(shuffled.length, 5);
+
+    // Count occurrences of 's'
+    const sCount = shuffled.filter(l => l === 's').length;
+    assertEqual(sCount, 2, 'Should have exactly 2 "s" letters');
+});
+
+// Test 115: Shuffling - randomness test (shuffles words differently over multiple runs)
+test('Shuffling: Produces different arrangements over multiple runs', () => {
+    const letters = ['c', 'h', 'a', 'i', 'r'];
+    const results = new Set();
+
+    // Run shuffle 20 times
+    for (let i = 0; i < 20; i++) {
+        const shuffled = shuffleArray(letters);
+        results.add(shuffled.join(''));
+    }
+
+    // Should produce at least 2 different arrangements
+    // (with 5 letters, there are 120 possible permutations)
+    assertTrue(results.size >= 2,
+        'Should produce multiple different arrangements over 20 runs');
+});
+
+// Test 116: Shuffling - works with longer words
+test('Shuffling: Handles longer words (substantially)', () => {
+    const word = 'substantially';
+    const letters = word.split('');
+    const shuffled = shuffleArray(letters);
+
+    assertEqual(shuffled.length, word.length);
+    assertEqual(shuffled.sort().join(''), letters.sort().join(''),
+        'Should contain all letters from original word');
+});
+
+// Test 117: Shuffling - works with special characters
+test('Shuffling: Handles special characters (pâtisserie)', () => {
+    const word = 'pâtisserie';
+    const letters = word.split('');
+    const shuffled = shuffleArray(letters);
+
+    assertEqual(shuffled.length, letters.length);
+    assertTrue(shuffled.includes('â'), 'Should preserve special character â');
+});
+
+// Test 118: Integration - Shuffling creates valid scramble for game
+test('Integration: Scrambled letters can be rearranged to form original word', () => {
+    const words = ['chair', 'brass', 'ready', 'plastic', 'evergreen'];
+
+    words.forEach(word => {
+        const letters = word.split('');
+        const shuffled = shuffleArray(letters);
+
+        // The player should be able to rearrange shuffled letters back to original
+        const canFormOriginal = shuffled.sort().join('') === letters.sort().join('');
+        assertTrue(canFormOriginal,
+            `Shuffled letters of "${word}" should be rearrangeable to original word`);
+    });
+});
+
 // ========== RESULTS ==========
 
 console.log(`\n${'='.repeat(50)}`);

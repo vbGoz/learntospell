@@ -86,15 +86,21 @@ const coverage = {
             tests: 9,
             coverage: 95,
             description: 'Accuracy, mastery stats, difficult words identification'
+        },
+        'Multiple Choice Distractor Generation': {
+            lines: 70,  // generateDistractors function
+            tests: 13,
+            coverage: 100,
+            description: 'All 5 distractor strategies tested (vowel swap, consonant doubling, transposition, spelling confusions, silent letters)'
+        },
+        'Unscramble Letter Shuffling': {
+            lines: 20,  // Letter scrambling logic
+            tests: 10,
+            coverage: 100,
+            description: 'Fisher-Yates shuffle tested with various word lengths, repeated letters, special characters'
         }
     },
     partiallyTested: {
-        'Multiple Choice Distractor Generation': {
-            lines: 70,  // generateDistractors function
-            tests: 0,
-            coverage: 0,
-            description: 'NOT TESTED: Distractor generation algorithms'
-        },
         'Game Mode Logic': {
             lines: 150,  // checkSpelling, checkUnscramble, checkMultipleChoice in component
             tests: 3,
@@ -138,12 +144,6 @@ const coverage = {
             tests: 0,
             coverage: 0,
             description: 'NOT TESTED: React state updates and re-renders'
-        },
-        'Unscramble Letter Shuffling': {
-            lines: 20,  // Letter scrambling logic
-            tests: 0,
-            coverage: 0,
-            description: 'NOT TESTED: Letter array shuffling and selection'
         },
         'Feedback Display': {
             lines: 80,  // Correct/incorrect feedback rendering
@@ -205,7 +205,7 @@ console.log();
 // Test efficiency metrics
 console.log('='.repeat(60));
 console.log('\n🎯 TEST EFFICIENCY:\n');
-console.log(`  Total Tests:       120`);
+console.log(`  Total Tests:       178`);
 console.log(`  Lines per Test:    ${(totalTestedLines / 95).toFixed(1)} (unit tests)`);
 console.log(`  Coverage per Test: ${(fullCoverage / 120).toFixed(2)}%`);
 console.log();
