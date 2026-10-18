@@ -361,6 +361,7 @@
             const [streak, setStreak] = useState(0);
             const [wordsAttempted, setWordsAttempted] = useState(0);
             const [shuffledWords, setShuffledWords] = useState([]);
+            const [sessionMode, setSessionMode] = useState(null); // game mode to return to on "Try Again"
             const [scrambledLetters, setScrambledLetters] = useState([]);
             const [selectedLetters, setSelectedLetters] = useState([]);
             const [multipleChoiceOptions, setMultipleChoiceOptions] = useState([]);
@@ -392,13 +393,6 @@
             }, [appData]);
 
             useEffect(() => {
-                const filtered = filterWordsByDifficulty(WORDS, difficultyFilter);
-                const shuffled = [...filtered].sort(() => Math.random() - 0.5);
-                setShuffledWords(shuffled);
-                setCurrentWordIndex(0);
-            }, [mode, difficultyFilter]);
-
-            useEffect(() => {
                 if (feedback !== null) return; // Don't play audio when showing feedback
                 if (shuffledWords.length === 0) return; // Don't play if no words loaded
 
@@ -406,13 +400,13 @@
 
                 if (mode === 'unscramble') {
                     const word = shuffledWords[currentWordIndex];
-                    const letters = word.split('').sort(() => Math.random() - 0.5);
+                    const letters = shuffle(word.split(''));
                     setScrambledLetters(letters.map((l, i) => ({ letter: l, id: i })));
                     timer = setTimeout(() => speakWord(word), 500);
                 } else if (mode === 'multiple-choice') {
                     const word = shuffledWords[currentWordIndex];
                     const distractors = generateDistractors(word);
-                    const allOptions = [word, ...distractors].sort(() => Math.random() - 0.5);
+                    const allOptions = shuffle([word, ...distractors]);
                     setMultipleChoiceOptions(allOptions);
                     timer = setTimeout(() => speakWord(word), 500);
                 } else if (mode === 'listen' || mode === 'practice') {
@@ -442,6 +436,16 @@
 
             const filterWordsByDifficulty = (words, difficulty) =>
                 Object.hasOwn(WORD_LEVELS, difficulty) ? WORD_LEVELS[difficulty] : words;
+
+            const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
+
+            // Start a game with its word list in one update, so the first screen never shows a stale list
+            const startSession = (nextMode, words = filterWordsByDifficulty(WORDS, difficultyFilter)) => {
+                setShuffledWords(shuffle(words));
+                setCurrentWordIndex(0);
+                setSessionMode(nextMode);
+                setMode(nextMode);
+            };
 
             // Generate plausible wrong answers (distractors) for multiple choice
             const generateDistractors = (correctWord) => {
@@ -686,8 +690,6 @@
                 setUserInput('');
                 setFeedback(null);
                 setSelectedLetters([]);
-                const filtered = filterWordsByDifficulty(WORDS, difficultyFilter);
-                setShuffledWords([...filtered].sort(() => Math.random() - 0.5));
             };
 
             const addLetter = (letterObj) => {
@@ -846,9 +848,7 @@
                 const startPracticeMistakes = () => {
                     const missed = getMissedWords(userData, WORDS);
                     if (missed.length > 0) {
-                        setShuffledWords([...missed].sort(() => Math.random() - 0.5));
-                        setCurrentWordIndex(0);
-                        setMode('practice');
+                        startSession('practice', missed);
                     }
                 };
 
@@ -918,10 +918,10 @@
                         ),
                         React.createElement('div', { className: 'space-y-4' },
                             React.createElement('button', { onClick: () => setMode('dashboard'), className: 'w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, '📊 Progress Dashboard'),
-                            React.createElement('button', { onClick: () => setMode('listen'), className: 'w-full bg-blue-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Listen & Spell'),
-                            React.createElement('button', { onClick: () => setMode('unscramble'), className: 'w-full bg-green-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Unscramble'),
-                            React.createElement('button', { onClick: () => setMode('multiple-choice'), className: 'w-full bg-yellow-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Multiple Choice'),
-                            React.createElement('button', { onClick: () => setMode('practice'), className: 'w-full bg-purple-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Study Mode'),
+                            React.createElement('button', { onClick: () => startSession('listen'), className: 'w-full bg-blue-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Listen & Spell'),
+                            React.createElement('button', { onClick: () => startSession('unscramble'), className: 'w-full bg-green-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Unscramble'),
+                            React.createElement('button', { onClick: () => startSession('multiple-choice'), className: 'w-full bg-yellow-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Multiple Choice'),
+                            React.createElement('button', { onClick: () => startSession('practice'), className: 'w-full bg-purple-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition' }, 'Study Mode'),
                             missedWords.length > 0 && React.createElement('button', {
                                 onClick: startPracticeMistakes,
                                 className: 'w-full bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2'
@@ -1101,7 +1101,7 @@
                             React.createElement('div', { className: 'text-5xl font-bold text-purple-600 mb-2' }, `${score}/${wordsAttempted}`),
                             React.createElement('div', { className: 'text-3xl font-bold text-pink-600 mt-4' }, `${percentage}%`)
                         ),
-                        React.createElement('button', { onClick: resetGame, className: 'w-full bg-green-500 text-white py-3 rounded-xl font-bold mb-3' }, 'Try Again'),
+                        React.createElement('button', { onClick: () => { resetGame(); startSession(sessionMode, shuffledWords); }, className: 'w-full bg-green-500 text-white py-3 rounded-xl font-bold mb-3' }, 'Try Again'),
                         React.createElement('button', { onClick: () => { resetGame(); setMode('home'); }, className: 'w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-bold' }, 'Back to Home')
                     )
                 );

@@ -291,3 +291,32 @@ test.describe('Navigation', () => {
     await expect(page.getByText(/listen & spell/i)).toBeVisible({ timeout: 3000 });
   });
 });
+
+test.describe('Practice Mistakes', () => {
+  test.beforeEach(async ({ page }) => {
+    // Seed one profile with 3 missed words (accuracy < 50%)
+    await page.addInitScript(() => {
+      const missed = { attempts: 2, correct: 0, lastAttempt: '2026-10-01T00:00:00.000Z' };
+      localStorage.setItem('wordClubData', JSON.stringify({
+        profiles: [{ id: 'p1', name: 'Tester', avatar: '😊', color: 'purple', createdAt: '2026-10-01T00:00:00.000Z' }],
+        currentProfileId: 'p1',
+        profileData: { p1: { settings: { difficulty: 'all' }, wordHistory: { ran: missed, wind: missed, leg: missed } } },
+      }));
+    });
+    await page.goto('/');
+  });
+
+  test('should practice only missed words, and Try Again restarts them', async ({ page }) => {
+    await page.getByText('Practice Mistakes (3)').click();
+    await expect(page.getByText('Word 1 of 3')).toBeVisible({ timeout: 5000 });
+
+    for (let i = 0; i < 3; i++) {
+      await page.getByPlaceholder('Type the word...').fill('zzz');
+      await page.getByRole('button', { name: 'Check Answer' }).click();
+      await page.getByRole('button', { name: 'Continue' }).click();
+    }
+
+    await page.getByRole('button', { name: 'Try Again' }).click();
+    await expect(page.getByText('Word 1 of 3')).toBeVisible();
+  });
+});
