@@ -79,9 +79,9 @@ words=(
 
 # Voice options (uncomment your preferred voice):
 # VOICE="Samantha"     # Default female
-VOICE="Samantha (Enhanced)"  # High-quality female (RECOMMENDED)
+# VOICE="Samantha (Enhanced)"  # High-quality female
 # VOICE="Alex"         # Default male
-# VOICE="Allison"      # Clear female
+VOICE="Allison (Enhanced)"   # Clear female (RECOMMENDED)
 # VOICE="Ava"          # Premium female voice
 # VOICE="Tom"          # Clear male
 

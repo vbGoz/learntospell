@@ -24,7 +24,7 @@ Your Word Club app is now a fully functional Progressive Web App with offline ca
 
 ### 4. **Service Worker Registration** - Automatic Activation
 - Registers on page load
-- Checks for updates every minute
+- Checks for updates when the app is opened or brought back into view
 - Seamless background updates
 
 ## 📱 How to Install & Test
@@ -102,7 +102,7 @@ git push origin main
 
 ### ✅ Fast Loading
 - Service worker caches assets
-- Instant page loads after first visit
+- Audio and libraries load instantly after first use
 - No loading spinners
 
 ### ✅ Auto-Updates
@@ -117,6 +117,10 @@ git push origin main
 
 ## 📊 Cache Strategy
 
+### Strategies:
+- **Pages (index.html) and manifest.json**: network-first, so new versions show up right away; the cached copy is used when offline
+- **Audio and libraries**: cache-first
+
 ### Immediate Cache (On Install):
 - index.html
 - manifest.json
@@ -124,7 +128,7 @@ git push origin main
 - React libraries
 
 ### On-Demand Cache (As Used):
-- Audio files (450 × ~8KB = ~3.7MB)
+- Audio files (450 × ~8KB = ~3.8MB)
 - Definitions (embedded in HTML)
 
 ### Cache Size:
@@ -149,10 +153,10 @@ git push origin main
 ### Audio Not Playing Offline?
 1. Audio files cached on first play
 2. Play each word once while online to cache
-3. Check audio cache: DevTools → Application → Cache Storage → `word-club-audio-v1`
+3. Check audio cache: DevTools → Application → Cache Storage → `word-club-audio-<VERSION>`
 
 ### Updates Not Appearing?
-1. Service worker checks every minute
+1. Service worker checks when the app is opened or brought back into view
 2. Hard refresh to force update (Cmd+Shift+R)
 3. Unregister old service worker: DevTools → Application → Service Workers → "Unregister"
 
@@ -177,12 +181,12 @@ When you make changes:
 
 1. **Update version** in `service-worker.js`:
    ```javascript
-   const CACHE_NAME = 'word-club-v2'; // Increment version
+   const VERSION = 'v4'; // Increment (e.g. to 'v5') to clear users' caches
    ```
 
 2. **Commit and push** to GitHub
 
-3. **Users get update automatically** within 1 minute of next visit
+3. **Users get update automatically** the next time they open the app; the page reloads once when the new version takes over
 
 ## 🎉 You're Done!
 

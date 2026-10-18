@@ -1,8 +1,10 @@
 // Word Club Service Worker
 // Handles offline functionality and caching
 
-const CACHE_NAME = 'word-club-v3';
-const AUDIO_CACHE_NAME = 'word-club-audio-v3';
+// Bump VERSION to force installed apps to drop their caches
+const VERSION = 'v4';
+const CACHE_NAME = `word-club-${VERSION}`;
+const AUDIO_CACHE_NAME = `word-club-audio-${VERSION}`;
 
 // Files to cache immediately (critical resources)
 const CRITICAL_ASSETS = [
@@ -22,14 +24,17 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('[Service Worker] Caching critical assets');
-        return cache.addAll(CRITICAL_ASSETS);
+        // Bypass the browser HTTP cache so a new version never caches a stale page
+        return cache.addAll(CRITICAL_ASSETS.map((url) => new Request(url, { cache: 'reload' })));
       })
       .then(() => {
         console.log('[Service Worker] Installed successfully');
         return self.skipWaiting(); // Activate immediately
       })
       .catch((error) => {
+        // Rethrow so a failed install keeps the current version (and its caches) in place
         console.error('[Service Worker] Installation failed:', error);
+        throw error;
       })
   );
 });
@@ -63,70 +68,59 @@ self.addEventListener('fetch', (event) => {
 
   // Handle audio files separately (they're large)
   if (url.pathname.includes('/audio/')) {
-    event.respondWith(handleAudioRequest(event.request));
+    event.respondWith(handleCacheFirst(event.request, AUDIO_CACHE_NAME));
     return;
   }
 
-  // Handle other requests with cache-first strategy
-  event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          console.log('[Service Worker] Serving from cache:', event.request.url);
-          return cachedResponse;
-        }
-
-        console.log('[Service Worker] Fetching from network:', event.request.url);
-        return fetch(event.request)
-          .then((response) => {
-            // Don't cache if not a success
-            if (!response || response.status !== 200 || response.type === 'error') {
-              return response;
-            }
-
-            // Clone the response
-            const responseToCache = response.clone();
-
-            // Cache the fetched resource
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          })
-          .catch((error) => {
-            console.error('[Service Worker] Fetch failed:', error);
-            // You could return a custom offline page here
-            throw error;
-          });
-      })
-  );
-});
-
-// Handle audio files with separate caching strategy
-async function handleAudioRequest(request) {
-  const cache = await caches.open(AUDIO_CACHE_NAME);
-  const cachedResponse = await cache.match(request);
-
-  if (cachedResponse) {
-    console.log('[Service Worker] Audio from cache:', request.url);
-    return cachedResponse;
+  // Pages and the manifest: network-first so new versions show up right away,
+  // falling back to the cache when offline
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('/manifest.json')) {
+    event.respondWith(handleNetworkFirst(event.request));
+    return;
   }
 
+  event.respondWith(handleCacheFirst(event.request, CACHE_NAME));
+});
+
+// Fetch from the network and store successful responses in the cache
+async function fetchAndCache(cache, request, cacheKey = request, init) {
+  const response = await fetch(request, init);
+  // Only full 200 responses: partial (206) audio range responses can't be cached
+  if (response.status === 200) {
+    cache.put(cacheKey, response.clone())
+      .catch((error) => console.error('[Service Worker] Cache write failed:', request, error));
+  }
+  return response;
+}
+
+// Serve from the cache, fetching and caching on a miss
+async function handleCacheFirst(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cachedResponse = await cache.match(request);
+  if (cachedResponse) return cachedResponse;
+
   try {
-    console.log('[Service Worker] Fetching audio:', request.url);
-    const response = await fetch(request);
-
-    if (response && response.status === 200) {
-      // Clone and cache the audio file
-      const responseToCache = response.clone();
-      cache.put(request, responseToCache);
-    }
-
-    return response;
+    return await fetchAndCache(cache, request);
   } catch (error) {
-    console.error('[Service Worker] Audio fetch failed:', error);
+    console.error('[Service Worker] Fetch failed:', request.url, error);
+    throw error;
+  }
+}
+
+// Fetch fresh from the network, updating the cache; use the cache when offline
+async function handleNetworkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  // Cache by path so query strings don't create duplicate entries
+  const url = new URL(request.url);
+  const cacheKey = url.origin + url.pathname;
+  try {
+    // Navigation requests can't take fetch options, so fetch by path URL (no query string) instead
+    return await fetchAndCache(cache, cacheKey, cacheKey, { cache: 'no-cache' });
+  } catch (error) {
+    console.log('[Service Worker] Offline, serving cached copy:', request.url);
+    const cachedResponse = await cache.match(cacheKey) ||
+      (request.mode === 'navigate' && await cache.match('./index.html'));
+    if (cachedResponse) return cachedResponse;
     throw error;
   }
 }
@@ -150,11 +144,7 @@ async function cacheAudioFiles(files) {
 
   for (const file of files) {
     try {
-      const response = await fetch(file);
-      if (response && response.status === 200) {
-        await cache.put(file, response);
-        console.log('[Service Worker] Cached audio:', file);
-      }
+      await fetchAndCache(cache, file);
     } catch (error) {
       console.error('[Service Worker] Failed to cache audio:', file, error);
     }
