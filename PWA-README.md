@@ -118,18 +118,18 @@ git push origin main
 ## 📊 Cache Strategy
 
 ### Strategies:
-- **Pages (index.html) and manifest.json**: network-first, so new versions show up right away; the cached copy is used when offline
+- **Pages (index.html), manifest.json and words.js**: network-first, so new versions show up right away; the cached copy is used when offline
 - **Audio and libraries**: cache-first
 
 ### Immediate Cache (On Install):
 - index.html
 - manifest.json
+- words.js (word list, levels, alternate spellings and definitions)
 - Tailwind CSS
 - React libraries
 
 ### On-Demand Cache (As Used):
 - Audio files (450 × ~8KB = ~3.8MB)
-- Definitions (embedded in HTML)
 
 ### Cache Size:
 - Initial: ~500KB

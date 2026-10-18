@@ -34,7 +34,7 @@ console.log(`\n📝 Total Application Code: ${totalLOC} lines\n`);
 const coverage = {
     tested: {
         'Word List & Definitions': {
-            lines: 225,  // WORDS + DEFINITIONS constants
+            lines: 477,  // words.js
             tests: 11,
             coverage: 100,
             description: 'All 450 words validated, no duplicates, proper parsing'

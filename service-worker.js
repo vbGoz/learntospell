@@ -2,15 +2,19 @@
 // Handles offline functionality and caching
 
 // Bump VERSION to force installed apps to drop their caches
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE_NAME = `word-club-${VERSION}`;
 const AUDIO_CACHE_NAME = `word-club-audio-${VERSION}`;
+
+// Path suffixes of non-page files served network-first so they stay in step with index.html
+const NETWORK_FIRST_FILES = ['/manifest.json', '/words.js'];
 
 // Files to cache immediately (critical resources)
 const CRITICAL_ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './words.js',
   'https://cdn.tailwindcss.com',
   'https://cdn.skypack.dev/react@18.2.0',
   'https://cdn.skypack.dev/react-dom@18.2.0'
@@ -62,7 +66,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - audio and libraries cache-first; pages, manifest and word list network-first
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -72,9 +76,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Pages and the manifest: network-first so new versions show up right away,
+  // Pages, the manifest and the word list: network-first so new versions show up right away,
   // falling back to the cache when offline
-  if (event.request.mode === 'navigate' || url.pathname.endsWith('/manifest.json')) {
+  if (event.request.mode === 'navigate' || NETWORK_FIRST_FILES.some((file) => url.pathname.endsWith(file))) {
     event.respondWith(handleNetworkFirst(event.request));
     return;
   }
@@ -114,8 +118,14 @@ async function handleNetworkFirst(request) {
   const url = new URL(request.url);
   const cacheKey = url.origin + url.pathname;
   try {
-    // Navigation requests can't take fetch options, so fetch by path URL (no query string) instead
-    return await fetchAndCache(cache, cacheKey, cacheKey, { cache: 'no-cache' });
+    // Navigation requests can't take fetch options, so fetch by path URL instead (this also drops any query string)
+    const response = await fetchAndCache(cache, cacheKey, cacheKey, { cache: 'no-cache' });
+    // A server error shouldn't replace a good cached copy
+    if (response.status >= 500) {
+      const cached = await cache.match(cacheKey);
+      if (cached) return cached;
+    }
+    return response;
   } catch (error) {
     console.log('[Service Worker] Offline, serving cached copy:', request.url);
     const cachedResponse = await cache.match(cacheKey) ||

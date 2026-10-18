@@ -1,7 +1,7 @@
 #!/bin/bash
 # Convert all AIFF audio files to M4A (AAC) for better mobile compatibility
 
-AUDIO_DIR="/Users/vbgoz/git/learntospell/audio"
+AUDIO_DIR="$(cd "$(dirname "$0")" && pwd)/audio"
 total=$(ls "$AUDIO_DIR"/*.aiff 2>/dev/null | wc -l | tr -d " ")
 
 if [ "$total" -eq 0 ]; then
@@ -23,7 +23,7 @@ for file in "$AUDIO_DIR"/*.aiff; do
         printf "\r[%3d/%d] Converting: %-50s" "$count" "$total" "$basename"
 
         # Convert AIFF to M4A (AAC) with default quality
-        afconvert -f m4af -d aac "$file" "$output" 2>/dev/null
+        afconvert -f m4af -d aac "$file" "$output"
 
         if [ $? -ne 0 ]; then
             echo ""

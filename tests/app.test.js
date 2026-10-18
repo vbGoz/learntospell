@@ -1,14 +1,11 @@
 // Word Club Spelling App - Unit Tests
 // Run with: npm test
 
-// Difficulty categories from the app
-const CATEGORIES = {
-    'one-bee': ["ran","wind","leg","dirt","rod","good","most","hurt","shy","bunny","down","steps","drink","silly","sick","path","mist","stars","truck","fire","still","hello","bush","late","pump","shell","yarn","wings","sharp","easy","body","house","rich","shift","heart","tusk","shoot","seal","even","dive","claws","crack","come","fine","winter","apple","sound","mossy","yellow","shine","chips","beans","mouth","spray","year","truth","paper","rabbit","feed","tallest","inside","frozen","speak","cliffs","whale","market","flock","crunch","lizard","beware","sparkle","sweater","nurse","wrong","hopped","money","cabin","darkness","always","sprout","carve","shadows","morning","alive","earth","friend","lovely","return","half","swift","grandfather","footprints","fear","thirsty","peer","gentle","riddle","voice","peach","pancakes","illness","lead","groan","sloth","knit","cloak","parade","whistle","total","indoors","trouble","relax","finish","holiday","safety","stout","spiders","entire","library","guide","hospital","mustard","company","ginger","narrow","medium","pennies","hiking","foolish","afraid","remember","result","charming","source","pearls","tangy","beasts","shivering","barge","grumpily","smoothly","cottage","humble","seventy","dangle","distance","breeze","soared","frazzled","bamboo"],
-    'two-bee': ["buttons","cuddle","puffy","tiptoed","clever","basement","burlap","wetlands","invite","butterflies","kelp","property","carefully","sniffling","beneath","tractor","permit","awning","fickle","relief","lunar","boycotting","molten","elite","woven","proclaim","thimble","custody","granola","warrior","rigid","fierce","laughter","salary","disappear","hurdler","lounge","jovial","inferior","December","duration","dictionary","business","reinstate","examine","versus","lullaby","opposite","tissues","marlin","Halloween","compliment","compromise","incident","Japanese","investment","bifocals","cutlery","chisel","fundraiser","geologist","bellowed","organism","quail","atmosphere","disappointment","truant","pamphlet","helium","suggested","chimpanzees","desperate","annoyance","interruption","concentrate","piñata","territory","stragglers","albino","ridiculous","monorail","exploratory","indigo","bratwurst","alphabetical","integrity","Oregon","rebuttal","prejudice","solidarity","calico","sputnik","cartridge","segregation","tortillas","civilian","fertilizer","apprentice","synthetic","Caesar","glamorous","salamanders","suspension","sorceress","fictitious","convertible","snarkiness","singularity","collateral","initiation","mascara","battalion","precedent","materialize","magnesium","perimeter","haddock","optometrist","meticulous","cosmodrome","hypothermia","schnauzer","megahertz","regolith","arthritis","persnickety","insurrection","pheasants","pentathletes","Senegal","fascism","duende","predecessor","Polaroid","reservoir","matrilineal","conscious","arnica","carrion","glaucoma","piteously","adrenaline","elliptical","staccato","iridium","romerillo","cemetery","dachshund","rendezvous","Aeolus"],
-    'three-bee': ["newt","thrummed","censers","lapels","generosity","burnished","embankment","unrelenting","wallowing","imperial","mortar","arsonists","mewling","generator","persistent","authority","panoramic","Doberman","dominion","decisively","gauntlets","inanimate","lemmings","auditory","appetizing","sentinels","frequency","self-sufficient","prospective","subscription","blithely","conspicuous","preconception","procession","tenuous","perpendicular","hemisphere","seminal","saxophone","torrential","reluctance","consulate","canter","sauntered","propeller","modish","cuisine","juniper","settee","unconscious","influenza","palazzo","finesse","foliage","odorant","irrelevant","curriculum","quizzically","diplomatically","enigmatic","increments","crocheted","calibrate","hypothesis","reassurance","apologetic","credenza","comprehensible","protectorate","Delaware","phenomenon","trenchant","pulmonary","undulating","alleviate","despondent","approximation","phantasmal","legation","echolocation","glycerin","brazier","diffidence","conflagration","alabaster","arachnid","butane","thermotaxis","arugula","pathologically","cataract","inaugurate","vibrometer","affinities","quiche","bioluminescence","mayonnaise","embodiment","euphemism","chickadee","sputum","porpoises","acolyte","asymmetric","cerulean","psychological","innocuous","sharpei","cul-de-sac","assemblage","Tripoli","endothermy","electrolytes","leprosy","neurological","éclair","ototoxic","eureka","mysticetes","irascibility","Aphrodite","annelids","Eritrea","a cappella","bogong moth","kerosene","forsythia","Amharic","yakuza","Pennsylvania","salicylic acid","Gloucester","sensilla","ampulla","stomatopods","prosciutto","eponymous","solenodon","frankincense","chitinous","Presbyterian","Sierra Leone","trichobothria","Krio","lactobacillus","Bildungsroman","Cappadocia","Addis Ababa","spes phthisica","vibrissae"],
-};
+// Word data shared with the app (words.js is the single source of truth)
+const WORD_DATA = require('../words.js');
+const CATEGORIES = WORD_DATA.WORD_LEVELS;
 
-const WORDS = Object.values(CATEGORIES).flat();
+const WORDS = WORD_DATA.WORDS;
 
 
 // Test helper functions
@@ -1645,37 +1642,43 @@ const fs = require('fs');
 const path = require('path');
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf-8');
 
-function readAppConstant(name) {
-    const match = indexHtml.match(new RegExp(`const ${name} = (\\{.*\\});`));
-    if (!match) throw new Error(`Could not find ${name} in index.html`);
-    return JSON.parse(match[1]);
-}
+test('App data: index.html loads words.js before the app and the service worker precaches it', () => {
+    const scripts = [...indexHtml.matchAll(/<script[^>]*>/g)].map(m => m[0]);
+    const wordsIdx = scripts.findIndex(t => /src="words\.js"/.test(t));
+    const moduleIdx = scripts.findIndex(t => /type="module"/.test(t));
+    assertTrue(wordsIdx !== -1, 'index.html must load words.js');
+    assertTrue(wordsIdx < moduleIdx, 'words.js must load before the module script');
+    assertTrue(!/const (WORD_LEVELS|ALTERNATE_SPELLINGS|DEFINITIONS) = \{/.test(indexHtml),
+        'index.html must not define its own word data');
+    const sw = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf-8');
+    const critical = sw.match(/const CRITICAL_ASSETS = \[([\s\S]*?)\];/)[1];
+    assertTrue(/'\.\/words\.js'/.test(critical), 'service-worker.js must precache ./words.js');
+    assertTrue(/NETWORK_FIRST_FILES = \[[^\]]*'\/words\.js'/.test(sw), 'words.js must be served network-first');
+});
 
-const APP_WORD_LEVELS = readAppConstant('WORD_LEVELS');
-const APP_WORDS = Object.values(APP_WORD_LEVELS).flat();
-const APP_DEFINITIONS = readAppConstant('DEFINITIONS');
-const APP_ALTERNATE_SPELLINGS = readAppConstant('ALTERNATE_SPELLINGS');
-
-test('App data: index.html word levels match the levels tested here', () => {
-    assertEqual(JSON.stringify(APP_WORD_LEVELS), JSON.stringify(CATEGORIES),
-        'WORD_LEVELS in index.html differs from CATEGORIES in this test file');
+test('App data: words.js defines window.WORD_DATA when loaded as a browser script', () => {
+    const vm = require('vm');
+    const sandbox = { window: {} };
+    vm.createContext(sandbox);
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'words.js'), 'utf-8'), sandbox);
+    assertEqual(sandbox.window.WORD_DATA.WORDS.length, WORDS.length, 'window.WORD_DATA.WORDS length mismatch');
 });
 
 test('App data: every word has a definition and there are no extra definitions', () => {
-    const missing = APP_WORDS.filter(w => !APP_DEFINITIONS[w]);
-    const extra = Object.keys(APP_DEFINITIONS).filter(w => !APP_WORDS.includes(w));
+    const missing = WORDS.filter(w => !WORD_DATA.DEFINITIONS[w]);
+    const extra = Object.keys(WORD_DATA.DEFINITIONS).filter(w => !WORDS.includes(w));
     assertEqual(missing.length, 0, `Words without definitions: ${missing.join(', ')}`);
     assertEqual(extra.length, 0, `Definitions for words not in the list: ${extra.join(', ')}`);
 });
 
 test('App data: every word has an audio file', () => {
     const audioDir = path.join(__dirname, '..', 'audio');
-    const missing = APP_WORDS.filter(w => !fs.existsSync(path.join(audioDir, `${getAudioFilename(w)}.m4a`)));
+    const missing = WORDS.filter(w => !fs.existsSync(path.join(audioDir, `${getAudioFilename(w)}.m4a`)));
     assertEqual(missing.length, 0, `Words without audio: ${missing.join(', ')}`);
 });
 
 test('App data: alternate spellings belong to words in the list', () => {
-    const unknown = Object.keys(APP_ALTERNATE_SPELLINGS).filter(w => !APP_WORDS.includes(w));
+    const unknown = Object.keys(WORD_DATA.ALTERNATE_SPELLINGS).filter(w => !WORDS.includes(w));
     assertEqual(unknown.length, 0, `Alternate spellings for unknown words: ${unknown.join(', ')}`);
 });
 

@@ -17,7 +17,8 @@ module.exports = {
     '/node_modules/',
     '/tests/app.test.js',
     '/tests/integration.test.js',
-    '/tests/react-lint.test.js'
+    '/tests/react-lint.test.js',
+    '/tests/utils.test.js' // standalone node script, run with `npm run test:utils`
   ],
 
   // Coverage configuration
