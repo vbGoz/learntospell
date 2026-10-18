@@ -31,26 +31,20 @@ npm test
 ## Unit Test Coverage (95 tests)
 
 ### Word List Tests (11 tests)
-- ✓ Verifies exactly 221 words in the list
+- ✓ Verifies exactly 450 words in the list (2026-2027 Scripps School Spelling Bee list)
 - ✓ Ensures no duplicate words
 - ✓ Checks for no empty strings
 - ✓ Validates word list parsing
-- ✓ All difficulty categories sum to 221
 - ✓ Category membership verification
 - ✓ No word appears in multiple categories
-- ✓ Special character handling (pâtisserie, compañero, geländesprung, protégé)
-- ✓ Multi-word phrase support (cri de coeur, chaise longue)
-- ✓ All category words exist in main list
-- ✓ Total words across categories equals 221
+- ✓ Special character handling (piñata, éclair, cul-de-sac, self-sufficient)
+- ✓ Multi-word phrase support (a cappella, Sierra Leone)
 
 ### Difficulty Filtering Tests (7 tests)
-- ✓ "All" filter returns all 221 words
-- ✓ "Very Easy" returns 40 words
-- ✓ "Easy" returns 39 words
-- ✓ "Medium" returns 39 words
-- ✓ "Medium-Hard" returns 36 words
-- ✓ "Hard" returns 35 words
-- ✓ "Very Hard" returns 32 words
+- ✓ "All" filter returns all 450 words
+- ✓ "One Bee" returns 150 words
+- ✓ "Two Bee" returns 150 words
+- ✓ "Three Bee" returns 150 words
 
 ### Spelling Check Tests (5 tests)
 - ✓ Correct spelling (exact match)
@@ -66,11 +60,12 @@ npm test
 
 ### Data Integrity Tests (6 tests)
 - ✓ Category membership verification
-- ✓ Special character handling (pâtisserie, compañero, geländesprung, protégé)
-- ✓ Multi-word phrase support (cri de coeur, chaise longue)
-- ✓ All category words exist in main list
+- ✓ Special character handling (piñata, éclair, cul-de-sac, self-sufficient)
+- ✓ Multi-word phrase support (a cappella, Sierra Leone)
 - ✓ No duplicate words across categories
-- ✓ Total words across categories equals 221
+- ✓ index.html word levels match the tested levels
+- ✓ Every word has a definition and an audio file
+- ✓ Alternate spellings belong to words in the list
 
 ### localStorage & Persistence Tests (25 tests)
 
@@ -110,7 +105,7 @@ npm test
 #### Integration & Performance Tests (3 tests)
 - ✓ Realistic practice session (10 words, 7 correct, 3 incorrect)
 - ✓ Path to mastery (repeat attempts until mastered)
-- ✓ Performance test (handles all 221 words in <100ms)
+- ✓ Performance test (handles all 450 words in <100ms)
 
 #### Edge Cases Tests (2 tests)
 - ✓ Words with 0 attempts don't appear in missed words
@@ -123,8 +118,8 @@ npm test
 - ✓ Spaces to underscores (cri de coeur → cri_de_coeur.m4a)
 - ✓ Multiple special chars (geländesprung → gelandesprung.m4a)
 - ✓ Spanish characters (compañero → companero.m4a)
-- ✓ All 221 words generate valid filenames
-- ✓ All 221 words use M4A format
+- ✓ All 450 words generate valid filenames
+- ✓ All 450 words use M4A format
 - ✓ All words map to unique audio filenames
 - ✓ Audio filenames are reasonable length (<255 chars)
 - ✓ Audio filenames are lowercase
@@ -207,7 +202,7 @@ These tests analyze the code statically to catch common React mistakes **before 
 - ✓ **Mastery stats with diverse progress** - Mixed word mastery levels
 - ✓ **Accuracy threshold boundaries** - 49%, 50%, 79%, 80% edge cases
 - ✓ **Student practice week** - Multi-day realistic usage pattern
-- ✓ **Performance with large history** - Load/save all 221 words efficiently
+- ✓ **Performance with large history** - Load/save all 450 words efficiently
 
 ## Test Results
 
@@ -274,7 +269,7 @@ Run `node tests/run-all-tests.js` before every commit to catch these issues!
 ## What's Tested
 
 ### Unit Tests (50)
-1. **Word List Integrity**: Ensures the word list has exactly 221 unique, non-empty words
+1. **Word List Integrity**: Ensures the word list has exactly 450 unique, non-empty words
 2. **Difficulty Categorization**: Verifies each difficulty level contains the correct number of words
 3. **Spelling Logic**: Tests the core spelling check algorithm with various inputs
 4. **Unscramble Logic**: Validates the letter unscrambling game mechanics
@@ -283,7 +278,7 @@ Run `node tests/run-all-tests.js` before every commit to catch these issues!
 7. **Learning Analytics**: Tests word history tracking, missed words detection, and mastery calculations
 8. **Data Structure**: Ensures userData schema is valid and consistent
 9. **Edge Cases**: Tests boundary conditions and error scenarios
-10. **Performance**: Verifies functions handle full 221-word list efficiently
+10. **Performance**: Verifies functions handle full 450-word list efficiently
 
 ### Integration Tests (15)
 1. **Complete Game Sessions**: Tests full Listen & Spell and Unscramble flows

@@ -107,8 +107,8 @@ describe('Home Screen Component', () => {
     // render(<HomeScreen userData={mockUserData} />);
     //
     // expect(screen.getByText('All')).toBeInTheDocument();
-    // expect(screen.getByText('Very Easy')).toBeInTheDocument();
-    // expect(screen.getByText('Hard')).toBeInTheDocument();
+    // expect(screen.getByText('One Bee')).toBeInTheDocument();
+    // expect(screen.getByText('Three Bee')).toBeInTheDocument();
   });
 
   test('shows "Practice Mistakes" button when missed words exist', () => {
@@ -137,10 +137,10 @@ describe('Home Screen Component', () => {
     // const onDifficultyChange = jest.fn();
     // render(<HomeScreen onDifficultyChange={onDifficultyChange} />);
     //
-    // const hardButton = screen.getByText('Hard');
-    // await userEvent.click(hardButton);
+    // const threeBeeButton = screen.getByText('Three Bee');
+    // await userEvent.click(threeBeeButton);
     //
-    // expect(onDifficultyChange).toHaveBeenCalledWith('hard');
+    // expect(onDifficultyChange).toHaveBeenCalledWith('three-bee');
   });
 });
 

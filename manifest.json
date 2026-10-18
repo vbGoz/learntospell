@@ -1,7 +1,7 @@
 {
   "name": "Word Club - Spelling Practice",
   "short_name": "Word Club",
-  "description": "Master your spelling skills with 221 spelling bee words, 3 game modes, and high-quality audio",
+  "description": "Master your spelling skills with 450 spelling bee words, 3 game modes, and high-quality audio",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#9333ea",

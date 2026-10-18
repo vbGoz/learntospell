@@ -2,12 +2,17 @@
 # Convert all AIFF audio files to M4A (AAC) for better mobile compatibility
 
 AUDIO_DIR="/Users/vbgoz/git/learntospell/audio"
+total=$(ls "$AUDIO_DIR"/*.aiff 2>/dev/null | wc -l | tr -d " ")
 
-echo "🔊 Converting 221 AIFF files to M4A (AAC) for mobile compatibility..."
+if [ "$total" -eq 0 ]; then
+    echo "❌ No AIFF files found in $AUDIO_DIR. Run generate-audio-macos.sh first."
+    exit 1
+fi
+
+echo "🔊 Converting $total AIFF files to M4A (AAC) for mobile compatibility..."
 echo ""
 
 count=0
-total=221
 
 for file in "$AUDIO_DIR"/*.aiff; do
     if [ -f "$file" ]; then
@@ -30,7 +35,7 @@ done
 
 echo ""
 echo ""
-echo "✅ Successfully converted all 221 files to M4A format!"
+echo "✅ Successfully converted all $total files to M4A format!"
 echo ""
 echo "📊 File size comparison:"
 aiff_size=$(du -sh "$AUDIO_DIR" | awk '{print $1}')

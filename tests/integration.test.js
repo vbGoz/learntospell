@@ -4,227 +4,456 @@
 
 // ========== SETUP ==========
 
-const WORDS = `substantially
-formidable
-marquee
-compunction
-hyperventilated
-onslaught
-misanthrope
-cravenly
-hypocritical
-traumatic
-solemnly
-contentious
-ensemble
-lye
-lacrosse
-cajolery
-residuals
-peroxide
-apocalypse
-barricade
-anonymously
-barrette
-junket
-Erie
-silhouette
-thesaurus
-chandelier
-concierge
-hibiscus
-maracas
-burpees
-piccolo
-tulle
-camphor
-paparazzi
-pogrom
-pâtisserie
-sarsaparilla
-cannelloni
-bronchitis
-diphtheria
-corbels
-Kilimanjaro
-protégé
-maquisards
-Charolais
-chair
-brass
-ready
-hangdog
-padlock
-scatter
-gobble
-eel
-sizzle
-Spanish
-hornet
-oval
-plastic
-mason
-slander
-evergreen
-decompose
-reasons
-dismantle
-glance
-oath
-sneakers
-duets
-cursive
-pastel
-hype
-nestled
-mustiness
-shrouded
-moderate
-mouthpiece
-lantern
-author
-wily
-veil
-redress
-cruiser
-vitally
-burrowed
-pentagon
-diagram
-scrimmage
-vulgar
-resign
-corrupt
-potency
-quartz
-tournament
-agribusiness
-clementine
-signature
-influence
-snorkeling
-citadel
-achievements
-appliances
-invective
-badminton
-gardenia
-emphatically
-absorption
-prognosticate
-Pacific
-affiliation
-synopsis
-coriander
-purgatory
-torpor
-covetous
-oppression
-abysmal
-precipice
-purview
-suburbia
-construe
-fettle
+const WORDS = `ran
+wind
+leg
+dirt
+rod
+good
+most
+hurt
+shy
+bunny
+down
+steps
+drink
+silly
+sick
+path
+mist
+stars
+truck
+fire
+still
+hello
+bush
+late
+pump
+shell
+yarn
+wings
+sharp
+easy
+body
+house
+rich
+shift
+heart
+tusk
+shoot
+seal
+even
+dive
+claws
+crack
+come
+fine
+winter
+apple
+sound
+mossy
+yellow
+shine
+chips
+beans
+mouth
+spray
+year
+truth
+paper
+rabbit
+feed
+tallest
+inside
+frozen
+speak
+cliffs
+whale
+market
+flock
+crunch
+lizard
+beware
+sparkle
+sweater
+nurse
+wrong
+hopped
+money
+cabin
+darkness
+always
+sprout
+carve
+shadows
+morning
+alive
+earth
+friend
+lovely
+return
+half
+swift
+grandfather
+footprints
+fear
+thirsty
+peer
+gentle
+riddle
+voice
+peach
+pancakes
+illness
+lead
+groan
+sloth
+knit
+cloak
+parade
+whistle
+total
+indoors
+trouble
+relax
+finish
+holiday
+safety
+stout
+spiders
+entire
+library
+guide
+hospital
+mustard
+company
+ginger
+narrow
+medium
+pennies
+hiking
+foolish
+afraid
+remember
+result
+charming
+source
+pearls
+tangy
+beasts
+shivering
+barge
+grumpily
+smoothly
+cottage
+humble
+seventy
+dangle
+distance
+breeze
+soared
+frazzled
+bamboo
+buttons
+cuddle
+puffy
+tiptoed
+clever
+basement
+burlap
+wetlands
+invite
+butterflies
+kelp
+property
+carefully
+sniffling
+beneath
+tractor
+permit
+awning
+fickle
+relief
+lunar
+boycotting
+molten
+elite
+woven
+proclaim
+thimble
+custody
+granola
+warrior
+rigid
+fierce
+laughter
+salary
+disappear
+hurdler
+lounge
+jovial
+inferior
+December
+duration
+dictionary
+business
+reinstate
+examine
+versus
+lullaby
+opposite
+tissues
+marlin
+Halloween
+compliment
+compromise
+incident
+Japanese
+investment
+bifocals
+cutlery
+chisel
+fundraiser
+geologist
+bellowed
+organism
+quail
+atmosphere
+disappointment
+truant
+pamphlet
+helium
+suggested
+chimpanzees
+desperate
+annoyance
+interruption
+concentrate
+piñata
+territory
+stragglers
+albino
+ridiculous
+monorail
+exploratory
+indigo
+bratwurst
+alphabetical
+integrity
+Oregon
+rebuttal
+prejudice
+solidarity
+calico
+sputnik
+cartridge
+segregation
+tortillas
+civilian
+fertilizer
+apprentice
+synthetic
+Caesar
+glamorous
+salamanders
+suspension
+sorceress
+fictitious
+convertible
+snarkiness
+singularity
+collateral
+initiation
+mascara
+battalion
+precedent
+materialize
+magnesium
+perimeter
+haddock
+optometrist
+meticulous
+cosmodrome
+hypothermia
+schnauzer
+megahertz
+regolith
+arthritis
+persnickety
+insurrection
+pheasants
+pentathletes
+Senegal
+fascism
+duende
+predecessor
+Polaroid
+reservoir
+matrilineal
+conscious
+arnica
+carrion
+glaucoma
+piteously
+adrenaline
+elliptical
+staccato
+iridium
+romerillo
+cemetery
+dachshund
+rendezvous
+Aeolus
+newt
+thrummed
+censers
+lapels
+generosity
+burnished
+embankment
+unrelenting
+wallowing
+imperial
+mortar
+arsonists
+mewling
+generator
+persistent
+authority
+panoramic
+Doberman
+dominion
+decisively
+gauntlets
+inanimate
+lemmings
+auditory
+appetizing
+sentinels
+frequency
+self-sufficient
+prospective
+subscription
+blithely
+conspicuous
+preconception
+procession
+tenuous
+perpendicular
+hemisphere
+seminal
+saxophone
+torrential
+reluctance
+consulate
+canter
+sauntered
+propeller
+modish
+cuisine
+juniper
+settee
+unconscious
+influenza
+palazzo
+finesse
+foliage
+odorant
+irrelevant
 curriculum
-deuce
-berth
-cyst
-knavery
-synonym
-purloined
-delectation
-austerity
-nascent
-extremophile
-monolithic
-coven
-satisfice
-nuptials
-aquacade
-assuage
-ballistics
-efficacy
-dreidel
-alacrity
-elision
-sanctimonious
-heptathlon
-tempera
-mitosis
-apologia
-mesomorph
-claustrophobia
-glissade
-antebellum
-weir
-sortie
-compañero
-pelota
-eloge
-mansard
-ramate
-paranephric
-tontine
-asyllabia
-velodrome
-dysplasia
-Columbiad
-terricolous
-soporiferous
-cyclopean
-messianic
-Austronesia
-maxillary
-Euclidean
-archizoic
-aphagia
-persillade
-capriccio
-chitin
-maisonette
-maunaloa
-hexastich
-bathypelagic
-syzygy
-pharisaical
-vicegerent
-pince-nez
-carotid
-salaam
-forzato
-covey
-apartheid
-kibbutz
-putti
-beignet
-fricassee
-abecedarius
-collunarium
-scamillus
-buccinator
-Tijuana
-silenus
-marcottage
-schuss
-bodegon
-cri de coeur
-chaise longue
-tathagata
-phalanstery
-diapir
-harmattan
-farinha
-shamiana
-chautauqua
-heishi
-mostaccioli
-baetyl
-gardai
-gelinotte
-zamacueca
-geländesprung
-sittringee`.split('\n').map(w => w.trim()).filter(w => w);
+quizzically
+diplomatically
+enigmatic
+increments
+crocheted
+calibrate
+hypothesis
+reassurance
+apologetic
+credenza
+comprehensible
+protectorate
+Delaware
+phenomenon
+trenchant
+pulmonary
+undulating
+alleviate
+despondent
+approximation
+phantasmal
+legation
+echolocation
+glycerin
+brazier
+diffidence
+conflagration
+alabaster
+arachnid
+butane
+thermotaxis
+arugula
+pathologically
+cataract
+inaugurate
+vibrometer
+affinities
+quiche
+bioluminescence
+mayonnaise
+embodiment
+euphemism
+chickadee
+sputum
+porpoises
+acolyte
+asymmetric
+cerulean
+psychological
+innocuous
+sharpei
+cul-de-sac
+assemblage
+Tripoli
+endothermy
+electrolytes
+leprosy
+neurological
+éclair
+ototoxic
+eureka
+mysticetes
+irascibility
+Aphrodite
+annelids
+Eritrea
+a cappella
+bogong moth
+kerosene
+forsythia
+Amharic
+yakuza
+Pennsylvania
+salicylic acid
+Gloucester
+sensilla
+ampulla
+stomatopods
+prosciutto
+eponymous
+solenodon
+frankincense
+chitinous
+Presbyterian
+Sierra Leone
+trichobothria
+Krio
+lactobacillus
+Bildungsroman
+Cappadocia
+Addis Ababa
+spes phthisica
+vibrissae`.split('\n').map(w => w.trim()).filter(w => w);
 
 // Mock localStorage
 class LocalStorageMock {
@@ -387,7 +616,7 @@ test('Integration: Complete Listen & Spell session', () => {
     let userData = loadUserData();
 
     // Start session
-    const testWords = ['chair', 'brass', 'ready', 'scatter', 'gobble'];
+    const testWords = ['shell', 'truck', 'apple', 'yellow', 'mossy'];
     let score = 0;
     let streak = 0;
     let wordsAttempted = 0;
@@ -424,10 +653,10 @@ test('Integration: Complete Listen & Spell session', () => {
     assertEqual(userData.stats.bestStreak, 3);
 
     // Verify word history
-    assertEqual(userData.wordHistory['chair'].attempts, 1);
-    assertEqual(userData.wordHistory['chair'].correct, 1);
-    assertEqual(userData.wordHistory['scatter'].attempts, 1);
-    assertEqual(userData.wordHistory['scatter'].correct, 0);
+    assertEqual(userData.wordHistory['shell'].attempts, 1);
+    assertEqual(userData.wordHistory['shell'].correct, 1);
+    assertEqual(userData.wordHistory['yellow'].attempts, 1);
+    assertEqual(userData.wordHistory['yellow'].correct, 0);
 });
 
 // Test 2: localStorage persistence across sessions
@@ -436,7 +665,7 @@ test('Integration: Data persists across sessions', () => {
     localStorage.clear();
     let userData = loadUserData();
 
-    userData.wordHistory = updateWordHistory(userData, 'chair', true);
+    userData.wordHistory = updateWordHistory(userData, 'shell', true);
     userData.stats.totalWordsAttempted = 1;
     userData.stats.totalCorrect = 1;
     userData.stats.bestStreak = 1;
@@ -448,19 +677,19 @@ test('Integration: Data persists across sessions', () => {
     // Verify data persisted
     assertEqual(newSession.stats.totalWordsAttempted, 1);
     assertEqual(newSession.stats.totalCorrect, 1);
-    assertEqual(newSession.wordHistory['chair'].attempts, 1);
-    assertEqual(newSession.wordHistory['chair'].correct, 1);
+    assertEqual(newSession.wordHistory['shell'].attempts, 1);
+    assertEqual(newSession.wordHistory['shell'].correct, 1);
 
     // Session 2: Continue practicing
-    newSession.wordHistory = updateWordHistory(newSession, 'chair', true);
+    newSession.wordHistory = updateWordHistory(newSession, 'shell', true);
     newSession.stats.totalWordsAttempted = 2;
     newSession.stats.totalCorrect = 2;
     saveUserData(newSession);
 
     // Verify cumulative data
     const afterSession2 = loadUserData();
-    assertEqual(afterSession2.wordHistory['chair'].attempts, 2);
-    assertEqual(afterSession2.wordHistory['chair'].correct, 2);
+    assertEqual(afterSession2.wordHistory['shell'].attempts, 2);
+    assertEqual(afterSession2.wordHistory['shell'].correct, 2);
 });
 
 // Test 3: Missed words workflow
@@ -470,14 +699,14 @@ test('Integration: Missed words detection and practice workflow', () => {
 
     // Practice 10 words with mixed results
     const practiceSession = [
-        { word: 'chair', correct: false },
-        { word: 'brass', correct: false },
-        { word: 'ready', correct: true },
-        { word: 'scatter', correct: true },
-        { word: 'gobble', correct: false },
-        { word: 'chair', correct: false },    // chair now 0/2
-        { word: 'brass', correct: true },     // brass now 1/2
-        { word: 'ready', correct: true },     // ready now 2/2
+        { word: 'shell', correct: false },
+        { word: 'truck', correct: false },
+        { word: 'apple', correct: true },
+        { word: 'yellow', correct: true },
+        { word: 'mossy', correct: false },
+        { word: 'shell', correct: false },    // shell now 0/2
+        { word: 'truck', correct: true },     // truck now 1/2
+        { word: 'apple', correct: true },     // apple now 2/2
     ];
 
     practiceSession.forEach(({ word, correct }) => {
@@ -492,10 +721,10 @@ test('Integration: Missed words detection and practice workflow', () => {
     const missed = getMissedWords(userData, WORDS);
 
     // Verify missed words list
-    assertTrue(missed.includes('chair'), 'chair should be in missed words (0/2 = 0%)');
-    assertTrue(missed.includes('gobble'), 'gobble should be in missed words (0/1 = 0%)');
-    assertTrue(!missed.includes('brass'), 'brass should NOT be in missed words (1/2 = 50%)');
-    assertTrue(!missed.includes('ready'), 'ready should NOT be in missed words (2/2 = 100%)');
+    assertTrue(missed.includes('shell'), 'shell should be in missed words (0/2 = 0%)');
+    assertTrue(missed.includes('mossy'), 'mossy should be in missed words (0/1 = 0%)');
+    assertTrue(!missed.includes('truck'), 'truck should NOT be in missed words (1/2 = 50%)');
+    assertTrue(!missed.includes('apple'), 'apple should NOT be in missed words (2/2 = 100%)');
 
     // Practice missed words until improved
     missed.forEach(word => {
@@ -514,7 +743,7 @@ test('Integration: Path from beginner to mastery', () => {
     localStorage.clear();
     let userData = loadUserData();
 
-    const word = 'chair';
+    const word = 'shell';
 
     // Stage 1: First attempt (incorrect)
     userData.wordHistory = updateWordHistory(userData, word, false);
@@ -553,12 +782,12 @@ test('Integration: Streak tracking across multiple words', () => {
     let streak = 0;
 
     const attempts = [
-        { word: 'chair', correct: true },   // streak = 1
-        { word: 'brass', correct: true },   // streak = 2
-        { word: 'ready', correct: true },   // streak = 3
-        { word: 'scatter', correct: false }, // streak = 0
-        { word: 'gobble', correct: true },  // streak = 1
-        { word: 'eel', correct: true },     // streak = 2
+        { word: 'shell', correct: true },   // streak = 1
+        { word: 'truck', correct: true },   // streak = 2
+        { word: 'apple', correct: true },   // streak = 3
+        { word: 'yellow', correct: false }, // streak = 0
+        { word: 'mossy', correct: true },  // streak = 1
+        { word: 'seal', correct: true },     // streak = 2
     ];
 
     attempts.forEach(({ word, correct }) => {
@@ -583,21 +812,21 @@ test('Integration: Difficulty preference persists across sessions', () => {
     localStorage.clear();
     let userData = loadUserData();
 
-    // Set difficulty to 'very-easy'
-    userData.settings.difficulty = 'very-easy';
+    // Set difficulty to 'one-bee'
+    userData.settings.difficulty = 'one-bee';
     saveUserData(userData);
 
     // Simulate app restart
     const newSession = loadUserData();
-    assertEqual(newSession.settings.difficulty, 'very-easy');
+    assertEqual(newSession.settings.difficulty, 'one-bee');
 
     // Change difficulty
-    newSession.settings.difficulty = 'hard';
+    newSession.settings.difficulty = 'three-bee';
     saveUserData(newSession);
 
     // Verify change persisted
     const afterChange = loadUserData();
-    assertEqual(afterChange.settings.difficulty, 'hard');
+    assertEqual(afterChange.settings.difficulty, 'three-bee');
 });
 
 // Test 7: Complete Unscramble mode flow
@@ -605,11 +834,11 @@ test('Integration: Complete Unscramble mode session', () => {
     localStorage.clear();
     let userData = loadUserData();
 
-    const testWords = ['chair', 'brass', 'ready'];
+    const testWords = ['shell', 'truck', 'apple'];
     const scrambledResults = [
-        ['c', 'h', 'a', 'i', 'r'], // correct
-        ['b', 'r', 'a', 's'], // incorrect (missing 's')
-        ['r', 'e', 'a', 'd', 'y'], // correct
+        ['s', 'h', 'e', 'l', 'l'], // correct
+        ['t', 'r', 'u', 'c'], // incorrect (missing 'k')
+        ['a', 'p', 'p', 'l', 'e'], // correct
     ];
 
     testWords.forEach((word, i) => {
@@ -623,7 +852,7 @@ test('Integration: Complete Unscramble mode session', () => {
 
     assertEqual(userData.stats.totalWordsAttempted, 3);
     assertEqual(userData.stats.totalCorrect, 2);
-    assertEqual(userData.wordHistory['brass'].correct, 0);
+    assertEqual(userData.wordHistory['truck'].correct, 0);
 });
 
 // Test 8: Multiple practice sessions cumulative stats
@@ -632,7 +861,7 @@ test('Integration: Cumulative stats across multiple sessions', () => {
     let userData = loadUserData();
 
     // Session 1: Morning practice
-    ['chair', 'brass', 'ready'].forEach(word => {
+    ['shell', 'truck', 'apple'].forEach(word => {
         userData.wordHistory = updateWordHistory(userData, word, true);
         userData.stats.totalWordsAttempted++;
         userData.stats.totalCorrect++;
@@ -641,7 +870,7 @@ test('Integration: Cumulative stats across multiple sessions', () => {
 
     // Session 2: Afternoon practice (reload from storage)
     userData = loadUserData();
-    ['scatter', 'gobble', 'eel'].forEach(word => {
+    ['yellow', 'mossy', 'seal'].forEach(word => {
         userData.wordHistory = updateWordHistory(userData, word, true);
         userData.stats.totalWordsAttempted++;
         userData.stats.totalCorrect++;
@@ -650,7 +879,7 @@ test('Integration: Cumulative stats across multiple sessions', () => {
 
     // Session 3: Evening practice (reload from storage)
     userData = loadUserData();
-    ['chair', 'brass'].forEach(word => { // Practice same words again
+    ['shell', 'truck'].forEach(word => { // Practice same words again
         userData.wordHistory = updateWordHistory(userData, word, true);
         userData.stats.totalWordsAttempted++;
         userData.stats.totalCorrect++;
@@ -661,8 +890,8 @@ test('Integration: Cumulative stats across multiple sessions', () => {
     const final = loadUserData();
     assertEqual(final.stats.totalWordsAttempted, 8);
     assertEqual(final.stats.totalCorrect, 8);
-    assertEqual(final.wordHistory['chair'].attempts, 2);
-    assertEqual(final.wordHistory['gobble'].attempts, 1);
+    assertEqual(final.wordHistory['shell'].attempts, 2);
+    assertEqual(final.wordHistory['mossy'].attempts, 1);
 });
 
 // Test 9: Recovery from corrupted localStorage
@@ -703,7 +932,7 @@ test('Integration: Large practice session (50 words)', () => {
 
     const stats = getMasteryStats(userData, WORDS);
     assertEqual(stats.practiced, 50);
-    assertEqual(stats.notPracticed, 171);
+    assertEqual(stats.notPracticed, WORDS.length - 50);
 });
 
 // Test 11: Mastery stats with diverse progress
@@ -713,21 +942,21 @@ test('Integration: Mastery stats with diverse word progress', () => {
 
     // Create diverse progress scenarios
     // Mastered words (80%+ accuracy, 3+ correct)
-    ['chair', 'brass', 'ready'].forEach(word => {
+    ['shell', 'truck', 'apple'].forEach(word => {
         for (let i = 0; i < 5; i++) {
             userData.wordHistory = updateWordHistory(userData, word, true);
         }
     });
 
     // Words needing practice (<50% accuracy)
-    ['scatter', 'gobble'].forEach(word => {
+    ['yellow', 'mossy'].forEach(word => {
         userData.wordHistory = updateWordHistory(userData, word, false);
         userData.wordHistory = updateWordHistory(userData, word, false);
         userData.wordHistory = updateWordHistory(userData, word, true);
     });
 
     // Words in progress (50-79% accuracy)
-    ['eel', 'sizzle'].forEach(word => {
+    ['seal', 'silly'].forEach(word => {
         userData.wordHistory = updateWordHistory(userData, word, true);
         userData.wordHistory = updateWordHistory(userData, word, true);
         userData.wordHistory = updateWordHistory(userData, word, false);
@@ -737,7 +966,7 @@ test('Integration: Mastery stats with diverse word progress', () => {
     assertEqual(stats.mastered, 3, 'Should have 3 mastered words');
     assertEqual(stats.needsPractice, 2, 'Should have 2 words needing practice');
     assertEqual(stats.practiced, 7, 'Should have 7 practiced words total');
-    assertEqual(stats.notPracticed, 214, 'Should have 214 not practiced');
+    assertEqual(stats.notPracticed, WORDS.length - 7, `Should have ${WORDS.length - 7} not practiced`);
 });
 
 // Test 12: Accuracy threshold boundaries
@@ -815,7 +1044,7 @@ test('Integration: Performance - Load/save with large history', () => {
     localStorage.clear();
     let userData = loadUserData();
 
-    // Create history for all 221 words
+    // Create history for all words
     WORDS.forEach(word => {
         const attempts = Math.floor(Math.random() * 10) + 1;
         const correct = Math.floor(Math.random() * attempts);
@@ -836,7 +1065,7 @@ test('Integration: Performance - Load/save with large history', () => {
 
     assertTrue(saveDuration < 100, 'Save should take less than 100ms');
     assertTrue(loadDuration < 100, 'Load should take less than 100ms');
-    assertEqual(Object.keys(loadedData.wordHistory).length, 221);
+    assertEqual(Object.keys(loadedData.wordHistory).length, WORDS.length);
 });
 
 // Test 15: Edge case - Practice same word many times in one session
@@ -844,7 +1073,7 @@ test('Integration: Edge case - Practice same word repeatedly', () => {
     localStorage.clear();
     let userData = loadUserData();
 
-    const word = 'chair';
+    const word = 'shell';
     const results = [false, false, true, true, true, true, true]; // 5/7 = 71%
 
     results.forEach(correct => {

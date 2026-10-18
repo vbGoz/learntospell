@@ -1,14 +1,14 @@
 # Audio Files for Word Club
 
 ## Overview
-This directory contains pre-recorded audio files for all 221 spelling bee words used in the Word Club app.
+This directory contains pre-recorded audio files for all 450 spelling bee words (2026-2027 Scripps School Spelling Bee list) used in the Word Club app.
 
 ## Audio Details
-- **Total Files**: 221
-- **Voice**: Allison (macOS built-in voice)
+- **Total Files**: 450
+- **Voice**: Samantha (Enhanced) (macOS built-in voice)
 - **Format**: M4A (AAC audio) - **Optimized for mobile!**
 - **Speech Rate**: 170 words per minute (slower, clearer)
-- **Total Size**: ~2.0 MB (80% smaller than AIFF!)
+- **Total Size**: ~3.7 MB (80% smaller than AIFF!)
 - **Quality**: High-quality, native macOS voice
 
 ## Why M4A Format?
@@ -20,7 +20,7 @@ We converted from AIFF to M4A for better mobile compatibility:
 - ✅ **Faster loading** over cellular connections
 
 ## Generation
-These files were originally generated using macOS's built-in `say` command with the Allison voice, then converted to M4A format for mobile optimization.
+These files were originally generated using macOS's built-in `say` command with the Samantha (Enhanced) voice, then converted to M4A format for mobile optimization.
 
 ### Regenerating Audio Files
 If you need to regenerate the audio files:
@@ -42,7 +42,7 @@ Edit `generate-audio-macos.sh` and change the `VOICE` variable to use a differen
 # Available voices (uncomment your preferred choice):
 # VOICE="Samantha"    # Default female
 # VOICE="Alex"        # Default male
-VOICE="Allison"       # Clear female (RECOMMENDED) ✓
+VOICE="Samantha (Enhanced)"  # High-quality female (RECOMMENDED) ✓
 # VOICE="Ava"         # Premium female voice
 # VOICE="Tom"         # Clear male
 ```

@@ -37,13 +37,13 @@ const coverage = {
             lines: 225,  // WORDS + DEFINITIONS constants
             tests: 11,
             coverage: 100,
-            description: 'All 221 words validated, no duplicates, proper parsing'
+            description: 'All 450 words validated, no duplicates, proper parsing'
         },
         'Difficulty Filtering': {
             lines: 15,  // filterWordsByDifficulty function
             tests: 7,
             coverage: 100,
-            description: 'All 6 difficulty levels + "all" filter tested'
+            description: 'All 3 Bee levels + "all" filter tested'
         },
         'Spelling Check Logic': {
             lines: 3,  // checkSpelling function equivalent
@@ -61,7 +61,7 @@ const coverage = {
             lines: 15,  // getAudioFilename function
             tests: 15,
             coverage: 100,
-            description: 'All 221 words, special chars, M4A format'
+            description: 'All 450 words, special chars, M4A format'
         },
         'localStorage Utilities': {
             lines: 50,  // All storage functions

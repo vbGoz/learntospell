@@ -1,237 +1,15 @@
 // Word Club Spelling App - Unit Tests
 // Run with: npm test
 
-const WORDS = `substantially
-formidable
-marquee
-compunction
-hyperventilated
-onslaught
-misanthrope
-cravenly
-hypocritical
-traumatic
-solemnly
-contentious
-ensemble
-lye
-lacrosse
-cajolery
-residuals
-peroxide
-apocalypse
-barricade
-anonymously
-barrette
-junket
-Erie
-silhouette
-thesaurus
-chandelier
-concierge
-hibiscus
-maracas
-burpees
-piccolo
-tulle
-camphor
-paparazzi
-pogrom
-pâtisserie
-sarsaparilla
-cannelloni
-bronchitis
-diphtheria
-corbels
-Kilimanjaro
-protégé
-maquisards
-Charolais
-chair
-brass
-ready
-hangdog
-padlock
-scatter
-gobble
-eel
-sizzle
-Spanish
-hornet
-oval
-plastic
-mason
-slander
-evergreen
-decompose
-reasons
-dismantle
-glance
-oath
-sneakers
-duets
-cursive
-pastel
-hype
-nestled
-mustiness
-shrouded
-moderate
-mouthpiece
-lantern
-author
-wily
-veil
-redress
-cruiser
-vitally
-burrowed
-pentagon
-diagram
-scrimmage
-vulgar
-resign
-corrupt
-potency
-quartz
-tournament
-agribusiness
-clementine
-signature
-influence
-snorkeling
-citadel
-achievements
-appliances
-invective
-badminton
-gardenia
-emphatically
-absorption
-prognosticate
-Pacific
-affiliation
-synopsis
-coriander
-purgatory
-torpor
-covetous
-oppression
-abysmal
-precipice
-purview
-suburbia
-construe
-fettle
-curriculum
-deuce
-berth
-cyst
-knavery
-synonym
-purloined
-delectation
-austerity
-nascent
-extremophile
-monolithic
-coven
-satisfice
-nuptials
-aquacade
-assuage
-ballistics
-efficacy
-dreidel
-alacrity
-elision
-sanctimonious
-heptathlon
-tempera
-mitosis
-apologia
-mesomorph
-claustrophobia
-glissade
-antebellum
-weir
-sortie
-compañero
-pelota
-eloge
-mansard
-ramate
-paranephric
-tontine
-asyllabia
-velodrome
-dysplasia
-Columbiad
-terricolous
-soporiferous
-cyclopean
-messianic
-Austronesia
-maxillary
-Euclidean
-archizoic
-aphagia
-persillade
-capriccio
-chitin
-maisonette
-maunaloa
-hexastich
-bathypelagic
-syzygy
-pharisaical
-vicegerent
-pince-nez
-carotid
-salaam
-forzato
-covey
-apartheid
-kibbutz
-putti
-beignet
-fricassee
-abecedarius
-collunarium
-scamillus
-buccinator
-Tijuana
-silenus
-marcottage
-schuss
-bodegon
-cri de coeur
-chaise longue
-tathagata
-phalanstery
-diapir
-harmattan
-farinha
-shamiana
-chautauqua
-heishi
-mostaccioli
-baetyl
-gardai
-gelinotte
-zamacueca
-geländesprung
-sittringee`.split('\n').map(w => w.trim()).filter(w => w);
-
 // Difficulty categories from the app
 const CATEGORIES = {
-    'very-easy': ['chair', 'brass', 'ready', 'scatter', 'gobble', 'eel', 'sizzle', 'Spanish', 'hornet', 'oval', 'plastic', 'mason', 'slander', 'evergreen', 'decompose', 'reasons', 'dismantle', 'glance', 'oath', 'sneakers', 'duets', 'cursive', 'pastel', 'hype', 'nestled', 'moderate', 'lantern', 'author', 'wily', 'veil', 'redress', 'cruiser', 'vitally', 'burrowed', 'pentagon', 'diagram', 'scrimmage', 'vulgar', 'resign', 'corrupt'],
-    'easy': ['padlock', 'hangdog', 'mustiness', 'shrouded', 'mouthpiece', 'potency', 'quartz', 'tournament', 'clementine', 'signature', 'influence', 'snorkeling', 'citadel', 'achievements', 'appliances', 'badminton', 'gardenia', 'absorption', 'Pacific', 'affiliation', 'synopsis', 'coriander', 'purgatory', 'torpor', 'covetous', 'oppression', 'abysmal', 'precipice', 'purview', 'suburbia', 'construe', 'fettle', 'curriculum', 'deuce', 'berth', 'cyst', 'knavery', 'synonym', 'purloined'],
-    'medium': ['marquee', 'traumatic', 'solemnly', 'ensemble', 'lye', 'lacrosse', 'cajolery', 'residuals', 'peroxide', 'apocalypse', 'barricade', 'anonymously', 'barrette', 'junket', 'Erie', 'silhouette', 'thesaurus', 'chandelier', 'concierge', 'hibiscus', 'maracas', 'burpees', 'piccolo', 'tulle', 'camphor', 'paparazzi', 'pogrom', 'sarsaparilla', 'cannelloni', 'bronchitis', 'diphtheria', 'corbels', 'Kilimanjaro', 'delectation', 'austerity', 'nascent', 'extremophile', 'monolithic', 'coven'],
-    'medium-hard': ['substantially', 'formidable', 'compunction', 'hyperventilated', 'onslaught', 'misanthrope', 'cravenly', 'hypocritical', 'contentious', 'agribusiness', 'invective', 'emphatically', 'prognosticate', 'satisfice', 'nuptials', 'aquacade', 'assuage', 'ballistics', 'efficacy', 'dreidel', 'alacrity', 'elision', 'sanctimonious', 'heptathlon', 'tempera', 'mitosis', 'apologia', 'mesomorph', 'claustrophobia', 'glissade', 'antebellum', 'weir', 'sortie', 'protégé', 'maquisards', 'Charolais'],
-    'hard': ['pâtisserie', 'compañero', 'pelota', 'eloge', 'mansard', 'ramate', 'paranephric', 'tontine', 'asyllabia', 'velodrome', 'dysplasia', 'Columbiad', 'terricolous', 'soporiferous', 'cyclopean', 'messianic', 'Austronesia', 'maxillary', 'Euclidean', 'archizoic', 'aphagia', 'persillade', 'capriccio', 'chitin', 'maisonette', 'maunaloa', 'hexastich', 'bathypelagic', 'syzygy', 'pharisaical', 'vicegerent', 'pince-nez', 'carotid', 'salaam', 'forzato'],
-    'very-hard': ['covey', 'apartheid', 'kibbutz', 'putti', 'beignet', 'fricassee', 'abecedarius', 'collunarium', 'scamillus', 'buccinator', 'Tijuana', 'silenus', 'marcottage', 'schuss', 'bodegon', 'cri de coeur', 'chaise longue', 'tathagata', 'phalanstery', 'diapir', 'harmattan', 'farinha', 'shamiana', 'chautauqua', 'heishi', 'mostaccioli', 'baetyl', 'gardai', 'gelinotte', 'zamacueca', 'geländesprung', 'sittringee']
+    'one-bee': ["ran","wind","leg","dirt","rod","good","most","hurt","shy","bunny","down","steps","drink","silly","sick","path","mist","stars","truck","fire","still","hello","bush","late","pump","shell","yarn","wings","sharp","easy","body","house","rich","shift","heart","tusk","shoot","seal","even","dive","claws","crack","come","fine","winter","apple","sound","mossy","yellow","shine","chips","beans","mouth","spray","year","truth","paper","rabbit","feed","tallest","inside","frozen","speak","cliffs","whale","market","flock","crunch","lizard","beware","sparkle","sweater","nurse","wrong","hopped","money","cabin","darkness","always","sprout","carve","shadows","morning","alive","earth","friend","lovely","return","half","swift","grandfather","footprints","fear","thirsty","peer","gentle","riddle","voice","peach","pancakes","illness","lead","groan","sloth","knit","cloak","parade","whistle","total","indoors","trouble","relax","finish","holiday","safety","stout","spiders","entire","library","guide","hospital","mustard","company","ginger","narrow","medium","pennies","hiking","foolish","afraid","remember","result","charming","source","pearls","tangy","beasts","shivering","barge","grumpily","smoothly","cottage","humble","seventy","dangle","distance","breeze","soared","frazzled","bamboo"],
+    'two-bee': ["buttons","cuddle","puffy","tiptoed","clever","basement","burlap","wetlands","invite","butterflies","kelp","property","carefully","sniffling","beneath","tractor","permit","awning","fickle","relief","lunar","boycotting","molten","elite","woven","proclaim","thimble","custody","granola","warrior","rigid","fierce","laughter","salary","disappear","hurdler","lounge","jovial","inferior","December","duration","dictionary","business","reinstate","examine","versus","lullaby","opposite","tissues","marlin","Halloween","compliment","compromise","incident","Japanese","investment","bifocals","cutlery","chisel","fundraiser","geologist","bellowed","organism","quail","atmosphere","disappointment","truant","pamphlet","helium","suggested","chimpanzees","desperate","annoyance","interruption","concentrate","piñata","territory","stragglers","albino","ridiculous","monorail","exploratory","indigo","bratwurst","alphabetical","integrity","Oregon","rebuttal","prejudice","solidarity","calico","sputnik","cartridge","segregation","tortillas","civilian","fertilizer","apprentice","synthetic","Caesar","glamorous","salamanders","suspension","sorceress","fictitious","convertible","snarkiness","singularity","collateral","initiation","mascara","battalion","precedent","materialize","magnesium","perimeter","haddock","optometrist","meticulous","cosmodrome","hypothermia","schnauzer","megahertz","regolith","arthritis","persnickety","insurrection","pheasants","pentathletes","Senegal","fascism","duende","predecessor","Polaroid","reservoir","matrilineal","conscious","arnica","carrion","glaucoma","piteously","adrenaline","elliptical","staccato","iridium","romerillo","cemetery","dachshund","rendezvous","Aeolus"],
+    'three-bee': ["newt","thrummed","censers","lapels","generosity","burnished","embankment","unrelenting","wallowing","imperial","mortar","arsonists","mewling","generator","persistent","authority","panoramic","Doberman","dominion","decisively","gauntlets","inanimate","lemmings","auditory","appetizing","sentinels","frequency","self-sufficient","prospective","subscription","blithely","conspicuous","preconception","procession","tenuous","perpendicular","hemisphere","seminal","saxophone","torrential","reluctance","consulate","canter","sauntered","propeller","modish","cuisine","juniper","settee","unconscious","influenza","palazzo","finesse","foliage","odorant","irrelevant","curriculum","quizzically","diplomatically","enigmatic","increments","crocheted","calibrate","hypothesis","reassurance","apologetic","credenza","comprehensible","protectorate","Delaware","phenomenon","trenchant","pulmonary","undulating","alleviate","despondent","approximation","phantasmal","legation","echolocation","glycerin","brazier","diffidence","conflagration","alabaster","arachnid","butane","thermotaxis","arugula","pathologically","cataract","inaugurate","vibrometer","affinities","quiche","bioluminescence","mayonnaise","embodiment","euphemism","chickadee","sputum","porpoises","acolyte","asymmetric","cerulean","psychological","innocuous","sharpei","cul-de-sac","assemblage","Tripoli","endothermy","electrolytes","leprosy","neurological","éclair","ototoxic","eureka","mysticetes","irascibility","Aphrodite","annelids","Eritrea","a cappella","bogong moth","kerosene","forsythia","Amharic","yakuza","Pennsylvania","salicylic acid","Gloucester","sensilla","ampulla","stomatopods","prosciutto","eponymous","solenodon","frankincense","chitinous","Presbyterian","Sierra Leone","trichobothria","Krio","lactobacillus","Bildungsroman","Cappadocia","Addis Ababa","spes phthisica","vibrissae"],
 };
+
+const WORDS = Object.values(CATEGORIES).flat();
+
 
 // Test helper functions
 function filterWordsByDifficulty(words, difficulty) {
@@ -349,8 +127,8 @@ function assertTrue(condition, message) {
 console.log('\n🧪 Running Word Club Spelling App Tests\n');
 
 // Test 1: Word list parsing
-test('Word list should contain exactly 221 words', () => {
-    assertEqual(WORDS.length, 221, `Expected 221 words, got ${WORDS.length}`);
+test('Word list should contain exactly 450 words', () => {
+    assertEqual(WORDS.length, 450, `Expected 450 words, got ${WORDS.length}`);
 });
 
 // Test 2: No duplicate words
@@ -366,51 +144,17 @@ test('Word list should have no empty strings', () => {
 });
 
 // Test 4: Filter by "all" returns all words
-test('Filtering by "all" should return all 221 words', () => {
+test('Filtering by "all" should return all words', () => {
     const filtered = filterWordsByDifficulty(WORDS, 'all');
-    assertEqual(filtered.length, 221);
+    assertEqual(filtered.length, WORDS.length);
 });
 
-// Test 5: Filter by very-easy
-test('Filtering by "very-easy" should return 40 words', () => {
-    const filtered = filterWordsByDifficulty(WORDS, 'very-easy');
-    assertEqual(filtered.length, 40, `Expected 40 very-easy words, got ${filtered.length}`);
-});
-
-// Test 6: Filter by easy
-test('Filtering by "easy" should return 39 words', () => {
-    const filtered = filterWordsByDifficulty(WORDS, 'easy');
-    assertEqual(filtered.length, 39, `Expected 39 easy words, got ${filtered.length}`);
-});
-
-// Test 7: Filter by medium
-test('Filtering by "medium" should return 39 words', () => {
-    const filtered = filterWordsByDifficulty(WORDS, 'medium');
-    assertEqual(filtered.length, 39, `Expected 39 medium words, got ${filtered.length}`);
-});
-
-// Test 8: Filter by medium-hard
-test('Filtering by "medium-hard" should return 36 words', () => {
-    const filtered = filterWordsByDifficulty(WORDS, 'medium-hard');
-    assertEqual(filtered.length, 36, `Expected 36 medium-hard words, got ${filtered.length}`);
-});
-
-// Test 9: Filter by hard
-test('Filtering by "hard" should return 35 words', () => {
-    const filtered = filterWordsByDifficulty(WORDS, 'hard');
-    assertEqual(filtered.length, 35, `Expected 35 hard words, got ${filtered.length}`);
-});
-
-// Test 10: Filter by very-hard
-test('Filtering by "very-hard" should return 32 words', () => {
-    const filtered = filterWordsByDifficulty(WORDS, 'very-hard');
-    assertEqual(filtered.length, 32, `Expected 32 very-hard words, got ${filtered.length}`);
-});
-
-// Test 11: All difficulty categories sum to 221
-test('All difficulty categories should sum to 221 words', () => {
-    const total = Object.values(CATEGORIES).reduce((sum, arr) => sum + arr.length, 0);
-    assertEqual(total, 221, `Expected 221 total words across categories, got ${total}`);
+// Tests 5-7: Each Bee level has 150 words
+Object.keys(CATEGORIES).forEach(level => {
+    test(`Filtering by "${level}" should return 150 words`, () => {
+        const filtered = filterWordsByDifficulty(WORDS, level);
+        assertEqual(filtered.length, 150, `Expected 150 ${level} words, got ${filtered.length}`);
+    });
 });
 
 // Test 12: Spelling check - correct (exact match)
@@ -462,26 +206,14 @@ test('Unscramble check should be case insensitive', () => {
     assertTrue(checkUnscramble(['c', 'h', 'a', 'i', 'r'], 'CHAIR'));
 });
 
-// Test 20: Category membership - very-easy contains "chair"
-test('Very-easy category should contain "chair"', () => {
-    assertTrue(CATEGORIES['very-easy'].includes('chair'));
+// Test 20: Category membership - one-bee contains "ran"
+test('One-bee category should contain "ran"', () => {
+    assertTrue(CATEGORIES['one-bee'].includes('ran'));
 });
 
-// Test 21: Category membership - very-hard contains "geländesprung"
-test('Very-hard category should contain "geländesprung"', () => {
-    assertTrue(CATEGORIES['very-hard'].includes('geländesprung'));
-});
-
-// Test 22: All category words exist in main word list
-test('All words in categories should exist in main word list', () => {
-    for (const [difficulty, words] of Object.entries(CATEGORIES)) {
-        for (const word of words) {
-            assertTrue(
-                WORDS.includes(word),
-                `Word "${word}" in ${difficulty} category not found in main word list`
-            );
-        }
-    }
+// Test 21: Category membership - three-bee contains "vibrissae"
+test('Three-bee category should contain "vibrissae"', () => {
+    assertTrue(CATEGORIES['three-bee'].includes('vibrissae'));
 });
 
 // Test 23: No word appears in multiple categories
@@ -499,16 +231,16 @@ test('No word should appear in multiple difficulty categories', () => {
 
 // Test 24: Special characters in words
 test('App should handle words with special characters', () => {
-    assertTrue(WORDS.includes('pâtisserie'), 'Should include pâtisserie');
-    assertTrue(WORDS.includes('compañero'), 'Should include compañero');
-    assertTrue(WORDS.includes('geländesprung'), 'Should include geländesprung');
-    assertTrue(WORDS.includes('protégé'), 'Should include protégé');
+    assertTrue(WORDS.includes('piñata'), 'Should include piñata');
+    assertTrue(WORDS.includes('éclair'), 'Should include éclair');
+    assertTrue(WORDS.includes('cul-de-sac'), 'Should include cul-de-sac');
+    assertTrue(WORDS.includes('self-sufficient'), 'Should include self-sufficient');
 });
 
 // Test 25: Multi-word phrases
 test('App should handle multi-word phrases', () => {
-    assertTrue(WORDS.includes('cri de coeur'), 'Should include cri de coeur');
-    assertTrue(WORDS.includes('chaise longue'), 'Should include chaise longue');
+    assertTrue(WORDS.includes('a cappella'), 'Should include a cappella');
+    assertTrue(WORDS.includes('Sierra Leone'), 'Should include Sierra Leone');
 });
 
 // ========== localStorage & PERSISTENCE TESTS ==========
@@ -632,27 +364,27 @@ test('getMasteryStats should return all zeros for new user', () => {
     assertEqual(stats.mastered, 0);
     assertEqual(stats.practiced, 0);
     assertEqual(stats.needsPractice, 0);
-    assertEqual(stats.notPracticed, 221);
+    assertEqual(stats.notPracticed, WORDS.length);
 });
 
 // Test 37: getMasteryStats identifies mastered word
 test('getMasteryStats should identify mastered word (80%+ accuracy, 3+ correct)', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 4, correct: 4, lastAttempt: new Date().toISOString() }
+        'shell': { attempts: 4, correct: 4, lastAttempt: new Date().toISOString() }
     };
     const stats = getMasteryStats(userData, WORDS);
     assertEqual(stats.mastered, 1);
     assertEqual(stats.practiced, 1);
     assertEqual(stats.needsPractice, 0);
-    assertEqual(stats.notPracticed, 220);
+    assertEqual(stats.notPracticed, WORDS.length - 1);
 });
 
 // Test 38: getMasteryStats requires 3+ correct for mastery
 test('getMasteryStats should require at least 3 correct answers for mastery', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 2, correct: 2, lastAttempt: new Date().toISOString() }
+        'shell': { attempts: 2, correct: 2, lastAttempt: new Date().toISOString() }
     };
     const stats = getMasteryStats(userData, WORDS);
     assertEqual(stats.mastered, 0, 'Should not count as mastered with only 2 correct');
@@ -663,7 +395,7 @@ test('getMasteryStats should require at least 3 correct answers for mastery', ()
 test('getMasteryStats should require 80%+ accuracy for mastery', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 5, correct: 3, lastAttempt: new Date().toISOString() }
+        'shell': { attempts: 5, correct: 3, lastAttempt: new Date().toISOString() }
     };
     const stats = getMasteryStats(userData, WORDS);
     assertEqual(stats.mastered, 0, 'Should not count as mastered with 60% accuracy');
@@ -674,7 +406,7 @@ test('getMasteryStats should require 80%+ accuracy for mastery', () => {
 test('getMasteryStats should identify words needing practice (<50% accuracy)', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 3, correct: 1, lastAttempt: new Date().toISOString() }
+        'shell': { attempts: 3, correct: 1, lastAttempt: new Date().toISOString() }
     };
     const stats = getMasteryStats(userData, WORDS);
     assertEqual(stats.needsPractice, 1);
@@ -686,25 +418,25 @@ test('getMasteryStats should identify words needing practice (<50% accuracy)', (
 test('getMasteryStats should handle mixed progress correctly', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 5, correct: 5, lastAttempt: new Date().toISOString() },
-        'brass': { attempts: 4, correct: 2, lastAttempt: new Date().toISOString() },
-        'ready': { attempts: 3, correct: 1, lastAttempt: new Date().toISOString() },
-        'scatter': { attempts: 4, correct: 4, lastAttempt: new Date().toISOString() }
+        'shell': { attempts: 5, correct: 5, lastAttempt: new Date().toISOString() },
+        'truck': { attempts: 4, correct: 2, lastAttempt: new Date().toISOString() },
+        'apple': { attempts: 3, correct: 1, lastAttempt: new Date().toISOString() },
+        'yellow': { attempts: 4, correct: 4, lastAttempt: new Date().toISOString() }
     };
     const stats = getMasteryStats(userData, WORDS);
-    assertEqual(stats.mastered, 2, 'chair and scatter should be mastered');
+    assertEqual(stats.mastered, 2, 'shell and yellow should be mastered');
     assertEqual(stats.practiced, 4);
-    assertEqual(stats.needsPractice, 1, 'ready should need practice');
-    assertEqual(stats.notPracticed, 217);
+    assertEqual(stats.needsPractice, 1, 'apple should need practice');
+    assertEqual(stats.notPracticed, WORDS.length - 4);
 });
 
 // Test 42: Accuracy calculation edge case - 1 attempt, 1 correct = 100%
 test('Single correct attempt should count as 100% accuracy', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 1, correct: 1, lastAttempt: new Date().toISOString() }
+        'shell': { attempts: 1, correct: 1, lastAttempt: new Date().toISOString() }
     };
-    const missed = getMissedWords(userData, ['chair']);
+    const missed = getMissedWords(userData, ['shell']);
     assertEqual(missed.length, 0, 'Should not be in missed words');
 });
 
@@ -712,9 +444,9 @@ test('Single correct attempt should count as 100% accuracy', () => {
 test('Single incorrect attempt should count as 0% accuracy', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 1, correct: 0, lastAttempt: new Date().toISOString() }
+        'shell': { attempts: 1, correct: 0, lastAttempt: new Date().toISOString() }
     };
-    const missed = getMissedWords(userData, ['chair']);
+    const missed = getMissedWords(userData, ['shell']);
     assertEqual(missed.length, 1, 'Should be in missed words');
 });
 
@@ -722,7 +454,7 @@ test('Single incorrect attempt should count as 0% accuracy', () => {
 test('getMasteryStats should count exactly 80% with 3+ correct as mastered', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 5, correct: 4, lastAttempt: new Date().toISOString() }
+        'shell': { attempts: 5, correct: 4, lastAttempt: new Date().toISOString() }
     };
     const stats = getMasteryStats(userData, WORDS);
     assertEqual(stats.mastered, 1, '80% accuracy with 4 correct should be mastered');
@@ -732,7 +464,7 @@ test('getMasteryStats should count exactly 80% with 3+ correct as mastered', () 
 test('getMasteryStats should not count exactly 50% as needing practice', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 4, correct: 2, lastAttempt: new Date().toISOString() }
+        'shell': { attempts: 4, correct: 2, lastAttempt: new Date().toISOString() }
     };
     const stats = getMasteryStats(userData, WORDS);
     assertEqual(stats.needsPractice, 0, '50% accuracy should not need practice');
@@ -744,7 +476,7 @@ test('Integration: Realistic practice session should update stats correctly', ()
     let userData = getDefaultUserData();
 
     // Practice session: 10 words, 7 correct, 3 incorrect
-    const words = ['chair', 'brass', 'ready', 'scatter', 'gobble', 'eel', 'sizzle', 'Spanish', 'hornet', 'oval'];
+    const words = ['shell', 'truck', 'apple', 'yellow', 'mossy', 'seal', 'silly', 'bunny', 'heart', 'rabbit'];
     const results = [true, true, false, true, true, false, true, true, false, true];
 
     words.forEach((word, i) => {
@@ -768,13 +500,13 @@ test('Integration: Realistic practice session should update stats correctly', ()
 test('Integration: Path to mastery should work correctly', () => {
     let userData = getDefaultUserData();
 
-    // Practice "chair" until mastered
+    // Practice "shell" until mastered
     for (let i = 0; i < 5; i++) {
-        userData.wordHistory = updateWordHistory(userData, 'chair', true);
+        userData.wordHistory = updateWordHistory(userData, 'shell', true);
     }
 
     const stats = getMasteryStats(userData, WORDS);
-    assertEqual(stats.mastered, 1, 'Should have mastered "chair"');
+    assertEqual(stats.mastered, 1, 'Should have mastered "shell"');
     assertEqual(stats.practiced, 1);
 
     const missed = getMissedWords(userData, WORDS);
@@ -812,8 +544,8 @@ test('userData structure should match schema', () => {
     assertTrue(Array.isArray(userData.achievements));
 });
 
-// Test 50: Performance test - getMissedWords with all 221 words
-test('Performance: getMissedWords should handle all 221 words efficiently', () => {
+// Test 50: Performance test - getMissedWords with all words
+test('Performance: getMissedWords should handle all words efficiently', () => {
     const userData = getDefaultUserData();
 
     // Create history for all words with varying accuracy
@@ -899,8 +631,8 @@ test('Mobile/Desktop: Audio filenames handle Spanish characters (compañero)', (
     assertTrue(/^[a-z0-9_]+$/.test(filename), 'Should only contain lowercase letters, numbers, and underscores');
 });
 
-// Test 57: All 221 words generate valid audio filenames
-test('Mobile/Desktop: All 221 words generate valid, mobile-safe filenames', () => {
+// Test 57: All words generate valid audio filenames
+test('Mobile/Desktop: All words generate valid, mobile-safe filenames', () => {
     const invalidFilenames = [];
     const validPattern = /^[a-z0-9_]+$/;
 
@@ -916,7 +648,7 @@ test('Mobile/Desktop: All 221 words generate valid, mobile-safe filenames', () =
 });
 
 // Test 58: Audio paths for all words use M4A format
-test('Mobile/Desktop: All 221 words use M4A audio format', () => {
+test('Mobile/Desktop: All words use M4A audio format', () => {
     WORDS.forEach(word => {
         const filename = getAudioFilename(word);
         const audioPath = `audio/${filename}.m4a`;
@@ -1187,9 +919,9 @@ test('Dashboard: Only show words with 2+ attempts as difficult', () => {
 test('Dashboard: Calculate mastery progress percentage', () => {
     const userData = getDefaultUserData();
     userData.wordHistory = {
-        'chair': { attempts: 5, correct: 5 },
-        'brass': { attempts: 4, correct: 4 },
-        'ready': { attempts: 3, correct: 3 }
+        'shell': { attempts: 5, correct: 5 },
+        'truck': { attempts: 4, correct: 4 },
+        'apple': { attempts: 3, correct: 3 }
     };
 
     const stats = getMasteryStats(userData, WORDS);
@@ -1905,6 +1637,46 @@ test('Integration: Scrambled letters can be rearranged to form original word', (
         assertTrue(canFormOriginal,
             `Shuffled letters of "${word}" should be rearrangeable to original word`);
     });
+});
+
+// ========== APP DATA CONSISTENCY (reads index.html) ==========
+
+const fs = require('fs');
+const path = require('path');
+const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf-8');
+
+function readAppConstant(name) {
+    const match = indexHtml.match(new RegExp(`const ${name} = (\\{.*\\});`));
+    if (!match) throw new Error(`Could not find ${name} in index.html`);
+    return JSON.parse(match[1]);
+}
+
+const APP_WORD_LEVELS = readAppConstant('WORD_LEVELS');
+const APP_WORDS = Object.values(APP_WORD_LEVELS).flat();
+const APP_DEFINITIONS = readAppConstant('DEFINITIONS');
+const APP_ALTERNATE_SPELLINGS = readAppConstant('ALTERNATE_SPELLINGS');
+
+test('App data: index.html word levels match the levels tested here', () => {
+    assertEqual(JSON.stringify(APP_WORD_LEVELS), JSON.stringify(CATEGORIES),
+        'WORD_LEVELS in index.html differs from CATEGORIES in this test file');
+});
+
+test('App data: every word has a definition and there are no extra definitions', () => {
+    const missing = APP_WORDS.filter(w => !APP_DEFINITIONS[w]);
+    const extra = Object.keys(APP_DEFINITIONS).filter(w => !APP_WORDS.includes(w));
+    assertEqual(missing.length, 0, `Words without definitions: ${missing.join(', ')}`);
+    assertEqual(extra.length, 0, `Definitions for words not in the list: ${extra.join(', ')}`);
+});
+
+test('App data: every word has an audio file', () => {
+    const audioDir = path.join(__dirname, '..', 'audio');
+    const missing = APP_WORDS.filter(w => !fs.existsSync(path.join(audioDir, `${getAudioFilename(w)}.m4a`)));
+    assertEqual(missing.length, 0, `Words without audio: ${missing.join(', ')}`);
+});
+
+test('App data: alternate spellings belong to words in the list', () => {
+    const unknown = Object.keys(APP_ALTERNATE_SPELLINGS).filter(w => !APP_WORDS.includes(w));
+    assertEqual(unknown.length, 0, `Alternate spellings for unknown words: ${unknown.join(', ')}`);
 });
 
 // ========== RESULTS ==========

@@ -221,10 +221,10 @@ test.describe('Difficulty Settings', () => {
     await page.getByText(/create profile/i).click();
 
     // Should show difficulty selector
-    await expect(page.getByText(/all/i).or(page.getByText(/very easy/i))).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/all/i).or(page.getByText(/one bee/i))).toBeVisible({ timeout: 5000 });
 
     // Click a difficulty level
-    const difficultyButton = page.getByText(/easy/i).first();
+    const difficultyButton = page.getByText(/two bee/i).first();
     if (await difficultyButton.isVisible()) {
       await difficultyButton.click();
     }

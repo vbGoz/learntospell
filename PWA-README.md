@@ -124,12 +124,12 @@ git push origin main
 - React libraries
 
 ### On-Demand Cache (As Used):
-- Audio files (221 × ~40KB = ~8.8MB)
+- Audio files (450 × ~8KB = ~3.7MB)
 - Definitions (embedded in HTML)
 
 ### Cache Size:
 - Initial: ~500KB
-- Full (all audio): ~9MB
+- Full (all audio): ~4MB
 - Caches only what's used
 
 ## 🔧 Troubleshooting
