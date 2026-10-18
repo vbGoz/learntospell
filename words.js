@@ -3,7 +3,7 @@
 //
 // Loaded in the browser with <script src="words.js"> (defines window.WORD_DATA)
 // and in Node/Jest with require('./words.js'). It is not an ES module, so a plain
-// browser `import` won't work; src/utils/gameCore.js imports it through Babel.
+// browser `import` won't work.
 //
 // Coupled to: index.html (script tag and load guard), service-worker.js
 // (precached and served network-first), and a check in tests/app.test.js.
